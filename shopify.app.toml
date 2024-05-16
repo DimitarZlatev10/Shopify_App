@@ -3,7 +3,7 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://offerings-download-ibm-mass.trycloudflare.com"
+application_url = "https://suit-characteristics-post-fired.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://offerings-download-ibm-mass.trycloudflare.com/auth/callback",
-  "https://offerings-download-ibm-mass.trycloudflare.com/auth/shopify/callback",
-  "https://offerings-download-ibm-mass.trycloudflare.com/api/auth/callback"
+  "https://suit-characteristics-post-fired.trycloudflare.com/auth/callback",
+  "https://suit-characteristics-post-fired.trycloudflare.com/auth/shopify/callback",
+  "https://suit-characteristics-post-fired.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -52,8 +52,8 @@ app.post("/api/products", async (_req, res) => {
 
   try {
   //  await productCreator(res.locals.shopify.session);
-    // await getAllProducts(res.locals.shopify.session)
-    await productHtmlDescriptionFormatter(res.locals.shopify.session)
+    await getAllProducts(res.locals.shopify.session)
+    // await productHtmlDescriptionFormatter(res.locals.shopify.session)
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;

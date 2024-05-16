@@ -113,6 +113,7 @@ query shopInfo{
 export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   const client = new shopify.api.clients.Graphql({ session });
 
+  console.log('wokerge');
   // 1.the html string
 
   //prime workout
@@ -733,6 +734,12 @@ export async function getAllProducts(session) {
       data: {
         query: GET_ALL_PRODUCTS_QUERY,
       },
+    });
+
+    console.log(`-------------------------products========================`);
+ 
+    response.body.data.products.edges.forEach(node=>{
+      console.log(node.node.metafields);
     });
 
     return response.body.data.products.edges;
