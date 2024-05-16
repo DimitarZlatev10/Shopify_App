@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Card, TextContainer, Text } from "@shopify/polaris";
+import { Card, TextContainer, Text, Button } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
-import axios from "axios";
+import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
+import {PlusIcon} from '@shopify/polaris-icons';
+// import axios from "axios";
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };
@@ -11,7 +13,7 @@ export function ProductsCard() {
   const [toastProps, setToastProps] = useState(emptyToastProps);
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
-  const productsCount = 5;
+  const productsCount = DEFAULT_PRODUCTS_COUNT;
 
   const {
     data,
@@ -41,7 +43,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
-          count: productsCount,
+          count: data.count,
         }),
       });
     } else {
@@ -75,6 +77,7 @@ export function ProductsCard() {
               {isLoadingCount ? "-" : data.count}
             </Text>
           </Text>
+          <Button icon={PlusIcon}>Generate TOC for all products</Button>
         </TextContainer>
       </Card>
     </>

@@ -1,0 +1,1 @@
+export const DEFAULT_PRODUCTS_COUNT = 1;
