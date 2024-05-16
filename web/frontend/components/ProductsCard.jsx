@@ -51,6 +51,26 @@ export function ProductsCard() {
     }
   };
 
+  const generateToc = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/generateToc", { method: "POST" });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("ProductsCard.productsCreatedToast", {
+          count: productsCount,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
   return (
     <>
       {toastMarkup}
@@ -67,6 +87,7 @@ export function ProductsCard() {
       >
         <TextContainer spacing="loose">
           <p>{t("ProductsCard.description")}</p>
+
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
@@ -75,6 +96,28 @@ export function ProductsCard() {
           </Text>
         </TextContainer>
       </Card>
+      {/* <Card
+        title="Toc Generator"
+        sectioned
+        primaryFooterAction={{
+          content: t("ProductsCard.populateProductsButton", {
+            count: productsCount,
+          }),
+          onAction: generateToc,
+          loading: isLoading,
+        }}
+      >
+        <TextContainer spacing="loose">
+          <p>{t("ProductsCard.description")}</p>
+
+          <Text as="h4" variant="headingMd">
+            {t("ProductsCard.totalProductsHeading")}
+            <Text variant="bodyMd" as="p" fontWeight="semibold">
+              {isLoadingCount ? "-" : data.count}
+            </Text>
+          </Text>
+        </TextContainer>
+      </Card> */}
     </>
   );
 }
