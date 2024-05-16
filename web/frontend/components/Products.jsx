@@ -49,7 +49,7 @@ const Products = () => {
             'numeric',
           ]}
           headings={[
-            'Product',
+            'Name',
             'TOC',
             'Actions'
           ]}
