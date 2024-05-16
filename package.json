@@ -1,0 +1,27 @@
+{
+  "name": "dimitar-shop-test-app",
+  "version": "1.0.0",
+  "main": "web/index.js",
+  "license": "UNLICENSED",
+  "scripts": {
+    "shopify": "shopify",
+    "build": "shopify app build",
+    "dev": "shopify app dev",
+    "info": "shopify app info",
+    "generate": "shopify app generate",
+    "deploy": "shopify app deploy"
+  },
+  "dependencies": {
+    "@langchain/openai": "^0.0.28",
+    "@shopify/shopify-api": "^7.7.0",
+    "dompurify": "^3.1.2",
+    "dotenv": "^16.4.5"
+  },
+  "author": "dimitar",
+  "private": true,
+  "workspaces": [
+    "extensions/*",
+    "web",
+    "web/frontend"
+  ]
+}
