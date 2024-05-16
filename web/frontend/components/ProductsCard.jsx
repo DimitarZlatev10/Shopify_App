@@ -96,7 +96,7 @@ export function ProductsCard() {
           </Text>
         </TextContainer>
       </Card>
-      {/* <Card
+      <Card
         title="Toc Generator"
         sectioned
         primaryFooterAction={{
@@ -117,7 +117,7 @@ export function ProductsCard() {
             </Text>
           </Text>
         </TextContainer>
-      </Card> */}
+      </Card>
     </>
   );
 }
