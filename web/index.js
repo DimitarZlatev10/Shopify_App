@@ -51,8 +51,8 @@ app.post("/api/products", async (_req, res) => {
   let error = null;
 
   try {
-  //  await productCreator(res.locals.shopify.session);
-    await getAllProducts(res.locals.shopify.session)
+   await productCreator(res.locals.shopify.session);
+    // await getAllProducts(res.locals.shopify.session)
     // await productHtmlDescriptionFormatter(res.locals.shopify.session)
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
@@ -61,6 +61,23 @@ app.post("/api/products", async (_req, res) => {
   }
   res.status(status).send({ success: status === 200, error });
 });
+
+app.post("/api/generateToc", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+  //  await productCreator(res.locals.shopify.session);
+    // await getAllProducts(res.locals.shopify.session)
+    await productHtmlDescriptionFormatter(res.locals.shopify.session)
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
 
 // app.post("/api/generate-content", async(_req , res)=>{
 //   let status = 200

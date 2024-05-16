@@ -113,7 +113,7 @@ query shopInfo{
 export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   const client = new shopify.api.clients.Graphql({ session });
 
-  console.log('wokerge');
+  console.log("wokerge");
   // 1.the html string
 
   //prime workout
@@ -693,10 +693,10 @@ export async function productHtmlDescriptionFormatter(session) {
       const toc = createToc(descriptionHtml);
       const productDescription = createProductDescription(descriptionHtml);
 
-      console.log(`--------------jsonn----------`);
-      console.log(toc.tocJson);
+      // console.log(`--------------jsonn----------`);
+      // console.log(toc.tocJson);
 
-      const updateDescription = await client.query({
+      await client.query({
         data: {
           query: UPDATE_PRODUCT_MUTATION,
           variables: {
@@ -706,7 +706,7 @@ export async function productHtmlDescriptionFormatter(session) {
         },
       });
 
-      // console.log(updateDescription.body);
+      console.log("---------------------tocgenerated--------------------");
     }
   } catch (error) {
     if (error instanceof GraphqlQueryError) {
@@ -729,11 +729,13 @@ export async function getAllProducts(session) {
       },
     });
 
-    console.log(`-------------------------products========================`);
- 
-    response.body.data.products.edges.forEach(node=>{
-      console.log(node.node.metafields);
-    });
+    console.log(
+      `-------------------------product created------------------------`
+    );
+
+    // response.body.data.products.edges.forEach(node=>{
+    //   console.log(node.node.metafields);
+    // });
 
     return response.body.data.products.edges;
   } catch (error) {
