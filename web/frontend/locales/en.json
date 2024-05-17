@@ -22,17 +22,24 @@
     "title": "Page name"
   },
   "ProductsCard": {
-    "description": "Sample products are created with a default title and price. You can remove them at any time.",
+    "description": "Create new test product",
     "errorCreatingProductsToast": "There was an error creating products",
     "populateProductsButton": {
-      "one": "Populate {{count}} product",
-      "other": "Populate {{count}} products"
+      "one": "Generate {{count}} product",
+      "other": "Generate {{count}} products"
     },
     "productsCreatedToast": {
       "one": "{{count}} product created!",
       "other": "{{count}} products created!"
     },
-    "title": "Product Counter",
+    "title": "Product Generator",
     "totalProductsHeading": "TOTAL PRODUCTS"
+  },
+  "Toc": {
+    "title": "Table of Contents Generator",
+    "description": "Generate Table of Contents for all products!",
+    "tocHeading": "RRODUCTS WITHOUT TABLE OF CONTENTS",
+    "generateToc": "Generate Toc for all products",
+    "tocGenerated": "Toc for products generated!"
   }
 }
