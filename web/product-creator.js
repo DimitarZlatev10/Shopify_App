@@ -729,12 +729,12 @@ export async function getAllProducts(session) {
       },
     });
 
-    console.log(
-      `-------------------------product created------------------------`
-    );
+    // console.log(
+    //   `-------------------------product created------------------------`
+    // );
 
-    // response.body.data.products.edges.forEach(node=>{
-    //   console.log(node.node.metafields);
+    // response.body.data.products.edges.forEach((node) => {
+    //   // console.log("node.node.metafields", node.node.metafields);
     // });
 
     return response.body.data.products.edges;
