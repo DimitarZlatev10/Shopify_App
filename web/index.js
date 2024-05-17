@@ -40,10 +40,13 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 app.use(express.json());
 
 app.get("/api/products/count", async (_req, res) => {
-  const countData = await shopify.api.rest.Product.count({
-    session: res.locals.shopify.session,
-  });
-  res.status(200).send(countData);
+  // const countData = await shopify.api.rest.Product.count({
+  //   session: res.locals.shopify.session,
+  // });
+
+  const products = await getAllProducts(res.locals.shopify.session)
+
+  res.status(200).send(products);
 });
 
 app.post("/api/products", async (_req, res) => {
@@ -51,9 +54,8 @@ app.post("/api/products", async (_req, res) => {
   let error = null;
 
   try {
-   await productCreator(res.locals.shopify.session);
-    // await getAllProducts(res.locals.shopify.session)
-    // await productHtmlDescriptionFormatter(res.locals.shopify.session)
+  await productCreator(res.locals.shopify.session);
+
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -67,25 +69,14 @@ app.post("/api/generateToc", async (_req, res) => {
   let error = null;
 
   try {
-  //  await productCreator(res.locals.shopify.session);
-    // await getAllProducts(res.locals.shopify.session)
-    await productHtmlDescriptionFormatter(res.locals.shopify.session)
+   await productHtmlDescriptionFormatter(res.locals.shopify.session)
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
     error = e.message;
   }
-  res.status(status).send({ success: status === 200, error });
+  res.status(status).send({ success: status === 200, error});
 });
-
-
-// app.post("/api/generate-content", async(_req , res)=>{
-//   let status = 200
-//   let error = null
-
-//   console.log(res);
-//   res.status(status).send({ success: status === 200, error });
-// })
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));

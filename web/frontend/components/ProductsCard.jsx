@@ -3,7 +3,7 @@ import { Card, TextContainer, Text } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
-import axios from "axios";
+import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };
@@ -11,7 +11,7 @@ export function ProductsCard() {
   const [toastProps, setToastProps] = useState(emptyToastProps);
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
-  const productsCount = 5;
+  const productsCount = DEFAULT_PRODUCTS_COUNT;
 
   const {
     data,
@@ -59,7 +59,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
-          count: productsCount,
+          count: 100,
         }),
       });
     } else {
@@ -91,29 +91,29 @@ export function ProductsCard() {
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : data.count}
+              {isLoadingCount ? "-" : data[0].length}
             </Text>
           </Text>
         </TextContainer>
       </Card>
       <Card
-        title="Toc Generator"
+        title={t("Toc.title")}
         sectioned
         primaryFooterAction={{
-          content: t("ProductsCard.populateProductsButton", {
-            count: productsCount,
+          content: t("Toc.generateToc", {
+            count: 100,
           }),
           onAction: generateToc,
           loading: isLoading,
         }}
       >
         <TextContainer spacing="loose">
-          <p>{t("ProductsCard.description")}</p>
+          <p>{t("Toc.description")}</p>
 
           <Text as="h4" variant="headingMd">
-            {t("ProductsCard.totalProductsHeading")}
+            {t("Toc.tocHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : data.count}
+              {isLoadingCount ? "-" : data[1].length}
             </Text>
           </Text>
         </TextContainer>
