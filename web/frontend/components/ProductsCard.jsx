@@ -14,7 +14,7 @@ export function ProductsCard() {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
-
+  
   const {
     data,
     refetch: refetchProductCount,
