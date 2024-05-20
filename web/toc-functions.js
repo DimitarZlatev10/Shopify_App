@@ -236,7 +236,7 @@ export function nestHTags(hTags) {
 }
 
 function generateNestedHTML(headings) {
-  let html = "<div><ul>";
+  let html = "<ul>";
 
   headings.forEach((heading) => {
     html += `<li ${heading.liClass ? `class="${heading.liClass}"` : ""}><a ${
@@ -250,7 +250,7 @@ function generateNestedHTML(headings) {
     html += "</li>";
   });
 
-  html += "</ul></div>";
+  html += `</ul>`;
 
-  return html;
+  return html
 }

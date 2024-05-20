@@ -40,6 +40,6 @@
     "description": "Generate Table of Contents for all products!",
     "tocHeading": "RRODUCTS WITHOUT TABLE OF CONTENTS",
     "generateToc": "Generate Toc for all products",
-    "tocGenerated": "Toc for products generated!"
+    "tocGenerated": "Generated Toc for {{count}} products"
   }
 }

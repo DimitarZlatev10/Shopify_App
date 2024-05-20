@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, TextContainer, Text } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ export function ProductsCard() {
   const emptyToastProps = { content: null };
   const [isLoading, setIsLoading] = useState(true);
   const [toastProps, setToastProps] = useState(emptyToastProps);
+  const [productsWithoutToc, setFilteredProducts] = useState([]);
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
@@ -26,6 +27,15 @@ export function ProductsCard() {
       },
     },
   });
+
+  console.log(data);
+
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      const filtered = data.filter((product) => !product.isTocGenerated);
+      setFilteredProducts(filtered);
+    }
+  }, [data]);
 
   const toastMarkup = toastProps.content && !isRefetchingCount && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
@@ -58,8 +68,8 @@ export function ProductsCard() {
     if (response.ok) {
       await refetchProductCount();
       setToastProps({
-        content: t("ProductsCard.productsCreatedToast", {
-          count: 100,
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc.length,
         }),
       });
     } else {
@@ -91,7 +101,7 @@ export function ProductsCard() {
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : data[0].length}
+              {isLoadingCount ? "-" : data?.length}
             </Text>
           </Text>
         </TextContainer>
@@ -101,7 +111,7 @@ export function ProductsCard() {
         sectioned
         primaryFooterAction={{
           content: t("Toc.generateToc", {
-            count: 100,
+            count: productsWithoutToc.length,
           }),
           onAction: generateToc,
           loading: isLoading,
@@ -113,7 +123,7 @@ export function ProductsCard() {
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : data[1].length}
+              {isLoadingCount ? "-" : productsWithoutToc.length}
             </Text>
           </Text>
         </TextContainer>
