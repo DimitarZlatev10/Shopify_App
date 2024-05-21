@@ -404,11 +404,11 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   
 
 
-  </div>`
+  </div>`;
 
   try {
     for (let i = 0; i < count; i++) {
-       await client.query({
+      await client.query({
         data: {
           query: CREATE_PRODUCTS_MUTATION,
           variables: {
@@ -436,52 +436,152 @@ export async function productHtmlDescriptionFormatter(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
   try {
+    // Fetch all products from the session
+    const products = await getAllProducts(session);
 
-  const products = await getAllProducts(session);
-
+    // GraphQL mutation to update the product's description and metafield
     const UPDATE_PRODUCT_MUTATION = `
       mutation UpdateProduct($id: ID!, $descriptionHtml: String!) {
         productUpdate(
           input: {
-           id: $id,
-          descriptionHtml: $descriptionHtml,
-          metafields : [
-            {
-              id : "gid://shopify/Metafield/9507172633",
-              key : "toc",
-              namespace : "custom",
-              value : "toc is generated"
-            }
-          ]
-        }) {
+            id: $id,
+            descriptionHtml: $descriptionHtml,
+            metafields: [
+              {
+                key: "toc",
+                namespace: "custom",
+                value: "toc is generated",
+                type: "single_line_text_field"
+              }
+            ]
+          }
+        ) {
           product {
             id
             descriptionHtml
+          }
+          userErrors {
+            field
+            message
           }
         }
       }
     `;
 
-  if(products.length > 0) {
-    const productsWithoutToc = products.filter((product) => !product.isTocGenerated);
-    for (const product of productsWithoutToc) {
-      const descriptionHtml = product.descriptionHtml;
-      const toc = createToc(descriptionHtml);
-      const productDescription = createProductDescription(descriptionHtml);
-  
-      await client.query({
-        data: {
-          query: UPDATE_PRODUCT_MUTATION,
-          variables: {
-            id: product.id,
-            descriptionHtml: `${toc.tocHtml} ${productDescription}`,
-          },
-        },
-      });
-      console.log('---------------------tocgenerated--------------------');
-    }
-  } 
+    // Check if there are any products to process
+    if (products.length > 0) {
+      // Filter products that do not have the ToC generated
+      const productsWithoutToc = products.filter(
+        (product) => !product.isTocGenerated
+      );
 
+      for (const product of productsWithoutToc) {
+        const descriptionHtml = product.descriptionHtml;
+
+        // Generate ToC and updated product description
+        const toc = createToc(descriptionHtml);
+        const productDescription = createProductDescription(descriptionHtml);
+
+        // Update product with the new descriptionHtml including the ToC
+        const response = await client.query({
+          data: {
+            query: UPDATE_PRODUCT_MUTATION,
+            variables: {
+              id: `gid://shopify/Product/${product.id}`,
+              descriptionHtml: `${toc.tocHtml} ${productDescription}`,
+            },
+          },
+        });
+
+        // Check for user errors in the response
+        if (response.data.productUpdate.userErrors.length > 0) {
+          throw new Error(
+            `Failed to update product ${
+              product.id
+            }: ${response.data.productUpdate.userErrors
+              .map((error) => error.message)
+              .join(", ")}`
+          );
+        }
+
+        console.log(
+          `Product ${product.id} ToC generated and updated successfully.`
+        );
+      }
+    }
+  } catch (error) {
+    if (error instanceof GraphqlQueryError) {
+      throw new Error(
+        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
+      );
+    } else {
+      throw error;
+    }
+  }
+}
+
+export async function generateTocForSingleProduct(
+  session,
+  gid,
+  productDescription
+) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  console.log(gid);
+  console.log(productDescription);
+
+  const toc = createToc(productDescription);
+  const generateProductDescription =
+    createProductDescription(productDescription);
+
+  try {
+    const GENERATE_TOC_FOR_PRODUCT = `
+    mutation UpdateProduct($id: ID!, $descriptionHtml: String!) {
+      productUpdate(
+        input: {
+          id: $id,
+          descriptionHtml: $descriptionHtml,
+          metafields: [
+            {
+              key: "toc",
+              namespace: "custom",
+              value: "toc is generated",
+            }
+          ]
+        }
+      ) {
+        product {
+          id
+          descriptionHtml
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+    const response = await client.query({
+      data: {
+        query: GENERATE_TOC_FOR_PRODUCT,
+        variables: {
+          id: `gid://shopify/Product/${gid}`,
+          descriptionHtml: `${toc.tocHtml} ${generateProductDescription}`,
+        },
+      },
+    });
+
+    // Check for user errors in the response
+    if (response.data.productUpdate.userErrors.length > 0) {
+      throw new Error(
+        `Failed to update product ${
+          product.id
+        }: ${response.data.productUpdate.userErrors
+          .map((error) => error.message)
+          .join(", ")}`
+      );
+    }
   } catch (error) {
     if (error instanceof GraphqlQueryError) {
       throw new Error(
@@ -505,28 +605,31 @@ export async function getAllProducts(session) {
 
     const products = response.body.data.products.edges;
 
-    const allProducts = []
+    const allProducts = [];
 
-    products.forEach((product)=>{
-      if(!product.node.metafields.edges.some(metafield => metafield.node.value === 'toc is generated')){
+    products.forEach((product) => {
+      if (
+        !product.node.metafields.edges.some(
+          (metafield) => metafield.node.value === "toc is generated"
+        )
+      ) {
         allProducts.push({
-          title : product.node.title,
-          id : product.node.id.split('Product/')[1],
-          descriptionHtml : product.node.descriptionHtml,
-          isTocGenerated : false
-        })
+          title: product.node.title,
+          id: product.node.id.split("Product/")[1],
+          descriptionHtml: product.node.descriptionHtml,
+          isTocGenerated: false,
+        });
       } else {
         allProducts.push({
-          title : product.node.title,
-          id : product.node.id.split('Product/')[1],
-          descriptionHtml : product.node.descriptionHtml,
-          isTocGenerated : true
-        })
+          title: product.node.title,
+          id: product.node.id.split("Product/")[1],
+          descriptionHtml: product.node.descriptionHtml,
+          isTocGenerated: true,
+        });
       }
-    })
+    });
 
-    return allProducts
-
+    return allProducts;
   } catch (error) {
     if (error instanceof GraphqlQueryError) {
       throw new Error(
