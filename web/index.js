@@ -10,6 +10,7 @@ import {
   productCreator,
   productHtmlDescriptionFormatter,
   getAllProducts,
+  generateTocForSingleProduct,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -71,6 +72,24 @@ app.post("/api/products", async (_req, res) => {
 
   try {
     await productCreator(res.locals.shopify.session);
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/generateTocPerProduct", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await generateTocForSingleProduct(
+      res.locals.shopify.session,
+      _req.body.gid,
+      _req.body.descriptionHtml
+    );
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;

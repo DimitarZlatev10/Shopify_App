@@ -19,7 +19,7 @@ const Products = () => {
     isLoading: isLoadingCount,
     isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: "/api/products",
+    url: "/api/products/count",
     reactQueryOptions: {
       onSuccess: () => {
         setIsLoading(false);
@@ -27,8 +27,7 @@ const Products = () => {
     },
   });
 
-  const handleGenerateTOC = async (element) => {
-    console.log('here'); 
+  const handleGenerateTOC = async (event, element) => {
     setIsLoading(true);
     const response = await fetch("/api/generateTocPerProduct", { 
       method: "POST",
@@ -36,8 +35,8 @@ const Products = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        id: element.id,
-        descriptionHtml: element.body_html
+        gid: element.id,
+        descriptionHtml: element.descriptionHtml
       }),
     });
 
@@ -57,9 +56,7 @@ const Products = () => {
     }
   }
 
-  console.log('data', data)
-
-  const rows = data?.data && data?.data.length > 0 && data?.data.map((element) => {
+  const rows = data && data.length > 0 && data.map((element) => {
     return [<Link
         removeUnderline
         url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${element.id}`}
@@ -67,12 +64,12 @@ const Products = () => {
       >
         {element.title}
       </Link>,
-      'false',
-      <Button icon={PlusIcon} onClick={(element) => handleGenerateTOC(element)}>Generate TOC</Button>]
+      element.isTocGenerated ? 'Yes' : 'No',
+      !element.isTocGenerated ? <Button icon={PlusIcon} onClick={(event) => handleGenerateTOC(event, element)}>Generate TOC</Button> : null]
   });
 
   return ( 
-    data?.data && data?.data.length > 0 && <Page title="Products">
+    data && data.length > 0 && <Page title="Products">
         <LegacyCard>
           <DataTable
             columnContentTypes={[
