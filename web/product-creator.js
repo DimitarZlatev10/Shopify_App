@@ -510,14 +510,14 @@ export async function getAllProducts(session) {
       if(!product.node.metafields.edges.some(metafield => metafield.node.value === 'toc is generated')){
         allProducts.push({
           title : product.node.title,
-          id : product.node.id,
+          id : product.node.id.split('Product/')[1],
           descriptionHtml : product.node.descriptionHtml,
           isTocGenerated : false
         })
       } else {
         allProducts.push({
           title : product.node.title,
-          id : product.node.id,
+          id : product.node.id.split('Product/')[1],
           descriptionHtml : product.node.descriptionHtml,
           isTocGenerated : true
         })
