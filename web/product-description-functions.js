@@ -114,7 +114,10 @@ export function setIdsToHeaderElements(htmlString) {
     var toc = document.querySelector( '.toc' );
     var tocPath = document.querySelector( '.toc-marker path' );
     var tocItems;
-  
+
+    console.log('toc', toc)
+    console.log('tocPath', tocPath)
+
     // Factor of screen size that the element must cross
     // before it's considered visible
     var TOP_MARGIN = 0.1,
@@ -134,6 +137,10 @@ export function setIdsToHeaderElements(htmlString) {
   
       tocItems = [].slice.call( toc.querySelectorAll( 'li' ) );
   
+
+    console.log('tocItems', tocItems)
+      
+
       // Cache element references and measurements
       tocItems = tocItems.map( function( item ) {
         var anchor = item.querySelector( 'a' );
@@ -153,6 +160,8 @@ export function setIdsToHeaderElements(htmlString) {
   
       var path = [];
       var pathIndent;
+
+      console.log('tocItems',tocItems)
   
       tocItems.forEach( function( item, i ) {
   

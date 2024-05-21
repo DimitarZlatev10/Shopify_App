@@ -71,7 +71,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("Toc.tocGenerated", {
-          count: productsWithoutToc.length,
+          count: productsWithoutToc?.length,
         }),
       });
     } else {
@@ -113,7 +113,7 @@ export function ProductsCard() {
         sectioned
         primaryFooterAction={{
           content: t("Toc.generateToc", {
-            count: productsWithoutToc.length,
+            count: productsWithoutToc?.length,
           }),
           onAction: generateToc,
           loading: isLoading,
@@ -125,7 +125,7 @@ export function ProductsCard() {
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
             <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : productsWithoutToc.length}
+              {isLoadingCount ? "-" : productsWithoutToc?.length}
             </Text>
           </Text>
           <Button icon={PlusIcon}>Generate TOC for all products</Button>
