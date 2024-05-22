@@ -36,13 +36,6 @@ export function sanitizeHtmlString(htmlString) {
 export function removeSpanElements(sanitizedHtmlString) {
   const dom = new JSDOM(sanitizedHtmlString);
 
-  // const spans = dom.window.document.querySelectorAll("span");
-
-  // spans.forEach(function (span) {
-  //   let text = dom.window.document.createTextNode(span.textContent);
-  //   span.parentNode.replaceChild(text, span);
-  // });
-
   const document = dom.window.document;
 
   const spans = document.querySelectorAll('span');
@@ -78,12 +71,13 @@ export function setIdsToHeaderElements(htmlString) {
   const hTags = dom.window.document.querySelectorAll("h1, h2, h3, h4, h5, h6");
 
   hTags.forEach((tag) => {
+
     let text = tag.innerHTML;
 
     if (text.includes("&nbsp")) {
       text = text.replace(/&nbsp;/g, " ").trim();
     }
-
+    
     let tries = 10;
     if (text.match(/[".,:?-]/)) {
       while (text.match(/[".,:?-]/)) {
@@ -115,9 +109,6 @@ export function setIdsToHeaderElements(htmlString) {
     var tocPath = document.querySelector( '.toc-marker path' );
     var tocItems;
 
-    console.log('toc', toc)
-    console.log('tocPath', tocPath)
-
     // Factor of screen size that the element must cross
     // before it's considered visible
     var TOP_MARGIN = 0.1,
@@ -137,15 +128,12 @@ export function setIdsToHeaderElements(htmlString) {
   
       tocItems = [].slice.call( toc.querySelectorAll( 'li' ) );
   
-
-    console.log('tocItems', tocItems)
-      
-
       // Cache element references and measurements
       tocItems = tocItems.map( function( item ) {
         var anchor = item.querySelector( 'a' );
-        var target = document.getElementById( anchor.getAttribute( 'href' ).slice( 1 ) );
-  
+        var target = document.getElementById(decodeURI(anchor.getAttribute( 'href' )).split('#')[1]);
+
+
         return {
           listItem: item,
           anchor: anchor,
@@ -161,8 +149,6 @@ export function setIdsToHeaderElements(htmlString) {
       var path = [];
       var pathIndent;
 
-      console.log('tocItems',tocItems)
-  
       tocItems.forEach( function( item, i ) {
   
         var x = item.anchor.offsetLeft - 5,
@@ -291,4 +277,39 @@ export function setIdsToHeaderElements(htmlString) {
   let domWithAddedIds = dom.serialize();
 
   return domWithAddedIds;
+}
+
+export function addSectionsToHeaderTags(htmlString) {
+  const dom = new JSDOM(htmlString);
+  const document = dom.window.document;
+
+  const divElement = document.querySelector('div');
+
+  let currentSection = null;
+
+  // Convert childNodes to an array to avoid issues when modifying the DOM while iterating
+  Array.from(divElement.childNodes).forEach((child) => {
+    if (child.tagName && child.tagName.startsWith('H')) {
+      // When we encounter a heading, we start a new section
+      if (currentSection) {
+        // Append the previous section to the div before starting a new one
+        divElement.appendChild(currentSection);
+      }
+
+      currentSection = document.createElement('section');
+      currentSection.id = child.id; // Set the section id to the heading id
+      child.removeAttribute('id'); // Remove the id from the heading
+      currentSection.appendChild(child); // Move the heading into the section
+    } else if (currentSection) {
+      // Move the current child into the current section if it exists
+      currentSection.appendChild(child);
+    }
+  });
+
+  // Append the last section to the div if it exists
+  if (currentSection) {
+    divElement.appendChild(currentSection);
+  }
+
+  return dom.serialize();
 }
