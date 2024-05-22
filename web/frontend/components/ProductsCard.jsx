@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, TextContainer, Text, Button } from "@shopify/polaris";
-import { Toast } from "@shopify/app-bridge-react";
+import { VerticalStack, Text, CalloutCard } from "@shopify/polaris";
+import { Toast } from "@shopify/app-bridge-react"; 
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
-import {PlusIcon} from '@shopify/polaris-icons';
 // import axios from "axios";
 
 export function ProductsCard() {
@@ -30,7 +29,7 @@ export function ProductsCard() {
     },
   });
 
-  console.log(data);
+  console.log('data', data);
 
   useEffect(() => {
     if (data && Array.isArray(data)) {
@@ -86,10 +85,9 @@ export function ProductsCard() {
   return (
     <>
       {toastMarkup}
-      <Card
+      <CalloutCard
         title={t("ProductsCard.title")}
-        sectioned
-        primaryFooterAction={{
+        primaryAction={{
           content: t("ProductsCard.populateProductsButton", {
             count: productsCount,
           }),
@@ -97,21 +95,20 @@ export function ProductsCard() {
           loading: isLoading,
         }}
       >
-        <TextContainer spacing="loose">
-          <p>{t("ProductsCard.description")}</p>
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: '15px' }}>{t("ProductsCard.description")}</p>
 
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
-            <Text variant="bodyMd" as="p" fontWeight="semibold">
+            <Text variant="bodyMd" as="span" fontWeight="semibold">
               {isLoadingCount ? "-" : data?.length}
             </Text>
           </Text>
-        </TextContainer>
-      </Card>
-      <Card
+        </VerticalStack>
+      </CalloutCard>
+      <CalloutCard
         title={t("Toc.title")}
-        sectioned
-        primaryFooterAction={{
+        primaryAction={{
           content: t("Toc.generateToc", {
             count: productsWithoutToc.length,
           }),
@@ -119,18 +116,17 @@ export function ProductsCard() {
           loading: isLoading,
         }}
       >
-        <TextContainer spacing="loose">
-          <p>{t("Toc.description")}</p>
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: '15px' }}>{t("Toc.description")}</p>
 
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
-            <Text variant="bodyMd" as="p" fontWeight="semibold">
+            <Text variant="bodyMd" as="span" fontWeight="semibold">
               {isLoadingCount ? "-" : productsWithoutToc.length}
             </Text>
           </Text>
-          <Button icon={PlusIcon}>Generate TOC for all products</Button>
-        </TextContainer>
-      </Card>
+        </VerticalStack>
+      </CalloutCard>
     </>
   );
 }

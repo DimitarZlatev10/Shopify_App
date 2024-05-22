@@ -4,6 +4,11 @@ import {Page, LegacyCard, DataTable, Link, Button} from '@shopify/polaris';
 import {PlusIcon} from '@shopify/polaris-icons';
 import { useAppQuery, useAuthenticatedFetch } from '../hooks';
 import { DEFAULT_PRODUCTS_COUNT } from '../../constants';
+// import './styles.css';
+// import styles from './Products.module.css';
+// import "@shopify/polaris/build/esm/styles.css" in index.js
+import "../styles.css";
+
 
 const Products = () => {
   const emptyToastProps = { content: null };
@@ -69,7 +74,20 @@ const Products = () => {
   });
 
   return ( 
-    data && data.length > 0 && <Page title="Products">
+    data && data.length > 0 && 
+    <Page 
+      title="Products" 
+      fullWidth
+      pagination={{
+        hasPrevious: true,
+        hasNext: true,
+      }}
+      // style={{backgroundColor: 'red'}}
+      // className="p-0"
+      // className={styles.test}
+      // className="test"
+      className="p-0"
+      >
         <LegacyCard>
           <DataTable
             columnContentTypes={[

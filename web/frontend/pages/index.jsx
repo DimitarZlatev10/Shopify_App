@@ -19,7 +19,7 @@ import Products from "../components/Products";
 export default function HomePage() {
   const { t } = useTranslation();
   return (
-    <Page narrowWidth>
+    <Page fullWidth style={{ padding: 0 }}>
       <TitleBar title={t("HomePage.title")} primaryAction={null} />
       <Layout>
         <Layout.Section>
