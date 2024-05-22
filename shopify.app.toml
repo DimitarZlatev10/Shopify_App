@@ -3,8 +3,8 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://waters-chief-results-gen.trycloudflare.com"
-embedded = false
+application_url = "https://reconstruction-wrap-age-village.trycloudflare.com"
+embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_content,write_products"
+scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://waters-chief-results-gen.trycloudflare.com/auth/callback",
-  "https://waters-chief-results-gen.trycloudflare.com/auth/shopify/callback",
-  "https://waters-chief-results-gen.trycloudflare.com/api/auth/callback"
+  "https://reconstruction-wrap-age-village.trycloudflare.com/auth/callback",
+  "https://reconstruction-wrap-age-village.trycloudflare.com/auth/shopify/callback",
+  "https://reconstruction-wrap-age-village.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
