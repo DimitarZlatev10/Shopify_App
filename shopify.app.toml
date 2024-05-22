@@ -3,8 +3,8 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://imported-td-deadline-aug.trycloudflare.com"
-embedded = true
+application_url = "https://vocational-wto-paintings-construct.trycloudflare.com"
+embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_products,write_content"
 
 [auth]
 redirect_urls = [
-  "https://imported-td-deadline-aug.trycloudflare.com/auth/callback",
-  "https://imported-td-deadline-aug.trycloudflare.com/auth/shopify/callback",
-  "https://imported-td-deadline-aug.trycloudflare.com/api/auth/callback"
+  "https://vocational-wto-paintings-construct.trycloudflare.com/auth/callback",
+  "https://vocational-wto-paintings-construct.trycloudflare.com/auth/shopify/callback",
+  "https://vocational-wto-paintings-construct.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
