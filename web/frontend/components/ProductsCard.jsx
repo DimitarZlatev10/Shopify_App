@@ -14,7 +14,7 @@ export function ProductsCard() {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
-  
+
   const {
     data,
     refetch: refetchProductCount,
@@ -50,7 +50,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
-          count: data.count,
+          count: 1,
         }),
       });
     } else {
@@ -70,7 +70,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("Toc.tocGenerated", {
-          count: productsWithoutToc.length,
+          count: productsWithoutToc?.length,
         }),
       });
     } else {
@@ -110,7 +110,7 @@ export function ProductsCard() {
         title={t("Toc.title")}
         primaryAction={{
           content: t("Toc.generateToc", {
-            count: productsWithoutToc.length,
+            count: productsWithoutToc?.length,
           }),
           onAction: generateToc,
           loading: isLoading,
@@ -121,8 +121,8 @@ export function ProductsCard() {
 
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
-            <Text variant="bodyMd" as="span" fontWeight="semibold">
-              {isLoadingCount ? "-" : productsWithoutToc.length}
+            <Text variant="bodyMd" as="p" fontWeight="semibold">
+              {isLoadingCount ? "-" : productsWithoutToc?.length}
             </Text>
           </Text>
         </VerticalStack>

@@ -415,7 +415,6 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
             input: {
               title: `${randomTitle()}`,
               descriptionHtml: htmlString,
-              variants: [{ price: randomPrice() }],
             },
           },
         },
@@ -451,7 +450,6 @@ export async function productHtmlDescriptionFormatter(session) {
                 key: "toc",
                 namespace: "custom",
                 value: "toc is generated",
-                type: "single_line_text_field"
               }
             ]
           }
@@ -468,21 +466,13 @@ export async function productHtmlDescriptionFormatter(session) {
       }
     `;
 
-    // Check if there are any products to process
     if (products.length > 0) {
-      // Filter products that do not have the ToC generated
-      const productsWithoutToc = products.filter(
-        (product) => !product.isTocGenerated
-      );
-
+      const productsWithoutToc = products.filter((product) => !product.isTocGenerated);
       for (const product of productsWithoutToc) {
         const descriptionHtml = product.descriptionHtml;
-
-        // Generate ToC and updated product description
         const toc = createToc(descriptionHtml);
         const productDescription = createProductDescription(descriptionHtml);
 
-        // Update product with the new descriptionHtml including the ToC
         const response = await client.query({
           data: {
             query: UPDATE_PRODUCT_MUTATION,
@@ -494,19 +484,13 @@ export async function productHtmlDescriptionFormatter(session) {
         });
 
         // Check for user errors in the response
-        if (response.data.productUpdate.userErrors.length > 0) {
+        if (response.body.data.productUpdate.userErrors.length > 0) {
           throw new Error(
-            `Failed to update product ${
-              product.id
-            }: ${response.data.productUpdate.userErrors
-              .map((error) => error.message)
-              .join(", ")}`
+            `Failed to update product ${product.id}: ${response.body.data.productUpdate.userErrors.map((error) => error.message).join(", ")}`
           );
         }
 
-        console.log(
-          `Product ${product.id} ToC generated and updated successfully.`
-        );
+        console.log(`Product ${product.id} ToC generated and updated successfully.`);
       }
     }
   } catch (error) {
@@ -571,13 +555,14 @@ export async function generateTocForSingleProduct(
         },
       },
     });
+    
 
     // Check for user errors in the response
-    if (response.data.productUpdate.userErrors.length > 0) {
+    if (response.body.data.productUpdate.userErrors.length > 0) {
       throw new Error(
         `Failed to update product ${
           product.id
-        }: ${response.data.productUpdate.userErrors
+        }: ${response.body.data.productUpdate.userErrors
           .map((error) => error.message)
           .join(", ")}`
       );

@@ -85,7 +85,7 @@ export function createHrefTags(headings) {
       }
     }
 
-    const href = `#${text.toLocaleLowerCase().split(" ").join("-")}`;
+    const href = `#${text.trim().toLocaleLowerCase().split(" ").join("-")}`;
 
     let tagAttributes = {
       heading: null,
