@@ -53,6 +53,7 @@ app.get("/api/products", async (_req, res) => {
   const data = await shopify.api.rest.Product.all({
     session: res.locals.shopify.session,
   });
+
   res.status(200).send(data);
 });
 
@@ -60,6 +61,7 @@ app.get("/api/whook", async (_req, res) => {
   console.log('kur')
   res.status(200).send('kur');
 })
+
 app.get("/api/products/count", async (_req, res) => {
   
   const products = await getAllProducts(res.locals.shopify.session);

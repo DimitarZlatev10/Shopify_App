@@ -450,7 +450,6 @@ export async function productHtmlDescriptionFormatter(session) {
                 key: "toc",
                 namespace: "custom",
                 value: "toc is generated",
-                type: "single_line_text_field"
               }
             ]
           }
@@ -470,7 +469,6 @@ export async function productHtmlDescriptionFormatter(session) {
     if (products.length > 0) {
       const productsWithoutToc = products.filter((product) => !product.isTocGenerated);
       for (const product of productsWithoutToc) {
-        console.log(product.id);
         const descriptionHtml = product.descriptionHtml;
         const toc = createToc(descriptionHtml);
         const productDescription = createProductDescription(descriptionHtml);
