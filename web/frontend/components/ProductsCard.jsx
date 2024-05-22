@@ -4,7 +4,7 @@ import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
-import {PlusIcon} from '@shopify/polaris-icons';
+import { PlusIcon } from "@shopify/polaris-icons";
 // import axios from "axios";
 
 export function ProductsCard() {
@@ -15,7 +15,7 @@ export function ProductsCard() {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
-  
+
   const {
     data,
     refetch: refetchProductCount,
@@ -29,8 +29,6 @@ export function ProductsCard() {
       },
     },
   });
-
-  console.log(data);
 
   useEffect(() => {
     if (data && Array.isArray(data)) {
@@ -51,7 +49,7 @@ export function ProductsCard() {
       await refetchProductCount();
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
-          count: data.count,
+          count: 1,
         }),
       });
     } else {

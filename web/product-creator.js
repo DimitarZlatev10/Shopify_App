@@ -415,7 +415,6 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
             input: {
               title: `${randomTitle()}`,
               descriptionHtml: htmlString,
-              variants: [{ price: randomPrice() }],
             },
           },
         },
@@ -451,7 +450,6 @@ export async function productHtmlDescriptionFormatter(session) {
                 key: "toc",
                 namespace: "custom",
                 value: "toc is generated",
-                type: "single_line_text_field"
               }
             ]
           }
@@ -471,7 +469,6 @@ export async function productHtmlDescriptionFormatter(session) {
     if (products.length > 0) {
       const productsWithoutToc = products.filter((product) => !product.isTocGenerated);
       for (const product of productsWithoutToc) {
-        console.log(product.id);
         const descriptionHtml = product.descriptionHtml;
         const toc = createToc(descriptionHtml);
         const productDescription = createProductDescription(descriptionHtml);
@@ -487,9 +484,9 @@ export async function productHtmlDescriptionFormatter(session) {
         });
 
         // Check for user errors in the response
-        if (response.data.productUpdate.userErrors.length > 0) {
+        if (response.body.data.productUpdate.userErrors.length > 0) {
           throw new Error(
-            `Failed to update product ${product.id}: ${response.data.productUpdate.userErrors.map((error) => error.message).join(", ")}`
+            `Failed to update product ${product.id}: ${response.body.data.productUpdate.userErrors.map((error) => error.message).join(", ")}`
           );
         }
 
@@ -558,13 +555,14 @@ export async function generateTocForSingleProduct(
         },
       },
     });
+    
 
     // Check for user errors in the response
-    if (response.data.productUpdate.userErrors.length > 0) {
+    if (response.body.data.productUpdate.userErrors.length > 0) {
       throw new Error(
         `Failed to update product ${
           product.id
-        }: ${response.data.productUpdate.userErrors
+        }: ${response.body.data.productUpdate.userErrors
           .map((error) => error.message)
           .join(", ")}`
       );
