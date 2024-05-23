@@ -30,8 +30,23 @@ export default {
     callbackUrl: "/api/webhooks",
     callback: async (topic, shop, body, webhookId) => {
       const payload = JSON.parse(body);
-      console.log('body: ' + body );
-      console.log('product update: ' + JSON.stringify(payload));
+      console.log('product updated!');
+    },
+  },
+  PRODUCTS_DELETE: {
+    deliveryMethod: DeliveryMethod.Http,
+    callbackUrl: "/api/webhooks",
+    callback: async (topic, shop, body, webhookId) => {
+      const payload = JSON.parse(body);
+      console.log('product deleted!');
+    },
+  },
+    PRODUCTS_CREATE: {
+    deliveryMethod: DeliveryMethod.Http,
+    callbackUrl: "/api/webhooks",
+    callback: async (topic, shop, body, webhookId) => {
+      const payload = JSON.parse(body);
+      console.log('product created!');
     },
   },
 };
