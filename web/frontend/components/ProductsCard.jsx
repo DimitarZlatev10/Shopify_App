@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
 import { PlusIcon } from "@shopify/polaris-icons";
-// import axios from "axios";
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };

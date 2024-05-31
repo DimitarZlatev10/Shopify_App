@@ -11,6 +11,7 @@ import {
   productHtmlDescriptionFormatter,
   getAllProducts,
   generateTocForSingleProduct,
+  editProductToc,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -57,13 +58,8 @@ app.get("/api/products", async (_req, res) => {
   res.status(200).send(data);
 });
 
-app.get("/api/whook", async (_req, res) => {
-  console.log('kur')
-  res.status(200).send('kur');
-})
-
 app.get("/api/products/count", async (_req, res) => {
-  
+
   const products = await getAllProducts(res.locals.shopify.session);
 
   res.status(200).send(products);
@@ -72,6 +68,8 @@ app.get("/api/products/count", async (_req, res) => {
 app.post("/api/products", async (_req, res) => {
   let status = 200;
   let error = null;
+
+  console.log(res.locals.shopify.session);
 
   try {
     await productCreator(res.locals.shopify.session);
