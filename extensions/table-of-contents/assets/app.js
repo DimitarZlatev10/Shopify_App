@@ -123,7 +123,51 @@ window.onload = function () {
 
         lastPathStart = pathStart;
         lastPathEnd = pathEnd;
-
     }
+      
+    let lastScrollTop = 0;
+
+    document.addEventListener('scroll', function() {
+        const toc = document.querySelector('.toc');
+        const footer = document.querySelector('.footer');
+        const headings = document.querySelectorAll('h2, h3, h4, h5, h6');
+        const viewportHeight = window.innerHeight;
+        let headingVisible = false;
+
+        // Check if any heading is visible
+        headings.forEach(heading => {
+            const rect = heading.getBoundingClientRect();
+            if (rect.top >= 0 && rect.bottom <= viewportHeight) {
+                headingVisible = true;
+            }
+        });
+
+        if (!headingVisible) {
+            toc.classList.add('hidden');
+        } else {
+            toc.classList.remove('hidden');
+        }
+
+        const footerRect = footer.getBoundingClientRect();
+        const scrollTop = window.scrollY;
+
+        // Adjust TOC position based on footer visibility
+        if (footerRect.top <= viewportHeight + 400) { // 100px before footer is visible
+            toc.classList.add('sticky');
+            toc.classList.remove('scrolling');
+        } else {
+            toc.classList.remove('sticky');
+            toc.classList.add('scrolling');
+        }
+
+        // Add top-page class while scrolling to the top
+        if (scrollTop < lastScrollTop) {
+            toc.classList.add('top-page');
+        } else {
+            toc.classList.remove('top-page');
+        }
+
+        lastScrollTop = scrollTop;
+    });
 
 };

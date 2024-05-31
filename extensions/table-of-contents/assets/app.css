@@ -1,33 +1,67 @@
 .toc {
   position: fixed;
-  left: 5%;
-  top: 8em;
-  width: 35em;
+  left: 4rem;
+  width: 25%;
   padding: 1em;
   line-height: 2;
   text-align: start;
   font-size: 15px;
-  /* max-height: 80%;
-  overflow-y: auto; */
+  height: 100%; 
+  background-color: white;
+  transition: top 0.3s ease, opacity 0.3s ease, transform 0.5s ease-in-out;
+  background: transparent;
+  border-right: 1px solid #ddd;
+  top: 8em;
+  opacity: 1; /* Default visible */
+}
+
+.toc.sticky {
+  background: transparent;
+  top: 0rem;
+  max-height: 90%;
+  transform: translateY(-300px);
+}
+
+.toc.scrolling {
+  background: transparent;
+  top: 1em;
+  max-height: 90%;
+}
+
+.toc.top-page {
+  background: transparent;
+  top: 5.5em;
+}
+
+.toc.scrolling.top-page {
+  top: 8em;
+}
+
+.toc.hidden {
+  opacity: 0; /* Hidden state */
 }
 .toc ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
 .toc ul ul {
   padding-left: 2em;
 }
+
 .toc li a {
   display: inline-block;
   color: #aaa;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
 .toc li.visible > a {
   color: #111;
   transform: translate(5px);
 }
+
 .toc-marker {
   position: absolute;
   top: 0;
@@ -36,9 +70,11 @@
   height: 100%;
   z-index: -1;
 }
+
 .toc-marker path {
   transition: all 0.3s ease;
 }
+
 .toc li a:hover {
   color: #333;
 }

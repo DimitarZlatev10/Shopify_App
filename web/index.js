@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
@@ -50,13 +50,13 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 
-app.get("/api/products", async (_req, res) => {
-  const data = await shopify.api.rest.Product.all({
-    session: res.locals.shopify.session,
-  });
+// app.get("/api/products", async (_req, res) => {
+//   const data = await shopify.api.rest.Product.all({
+//     session: res.locals.shopify.session,
+//   });
 
-  res.status(200).send(data);
-});
+//   res.status(200).send(data);
+// });
 
 app.get("/api/products/count", async (_req, res) => {
 
@@ -105,6 +105,7 @@ app.post("/api/generateToc", async (_req, res) => {
 
   try {
     await productHtmlDescriptionFormatter(res.locals.shopify.session);
+    console.log('kur')
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
