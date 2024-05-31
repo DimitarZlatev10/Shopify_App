@@ -1,26 +1,8 @@
 import { DeliveryMethod } from "@shopify/shopify-api";
-<<<<<<< HEAD
-import shopify from "./shopify.js";
-
-const createMetafieldQuery = `mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
-  metafieldDefinitionCreate(definition: $definition) {
-    createdDefinition {
-      id
-      name
-    }
-    userErrors {
-      field
-      message
-      code
-    }
-  }
-}`;
-=======
 import { editProductToc } from "./product-creator.js";
 
 const processedWebhooks = new Set();
 let isUpdating = false;
->>>>>>> 24e826968077064fd26deb265cc5d918253308a7
 
 /**
  * @type {{[key: string]: import("@shopify/shopify-api").WebhookHandler}}
@@ -113,9 +95,6 @@ export default {
       }
 
       const payload = JSON.parse(body);
-<<<<<<< HEAD
-      console.log("product updated!");
-=======
       const productId = payload.admin_graphql_api_id;
 
       if (processedWebhooks.has(productId)) {
@@ -135,7 +114,6 @@ export default {
       } finally {
         isUpdating = false;
       }
->>>>>>> 24e826968077064fd26deb265cc5d918253308a7
     },
   },
   PRODUCTS_DELETE: {

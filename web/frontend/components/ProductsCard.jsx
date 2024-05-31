@@ -4,11 +4,7 @@ import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
-<<<<<<< HEAD
 // import axios from "axios";
-=======
-import { PlusIcon } from "@shopify/polaris-icons";
->>>>>>> 24e826968077064fd26deb265cc5d918253308a7
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };
