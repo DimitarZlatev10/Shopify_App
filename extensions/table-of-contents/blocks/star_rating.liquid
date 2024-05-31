@@ -1,0 +1,20 @@
+{% if product.metafields.custom.toc %}
+  <div style="color: {{ block.settings.colour }}">
+    {{ product.metafields.custom.toc.value | raw }}
+  </div>
+{% else %}
+  <p>No TOC metafield available.</p>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Table of Contents",
+  "target": "section",
+   "stylesheet": "app.css",
+   "javascript": "app.js",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "autofill": true },
+    { "type": "color", "id": "colour", "label": "Text Colour", "default": "#ff0000" }
+  ]
+}
+{% endschema %}
