@@ -292,6 +292,58 @@ replaceParentWithImg('p');
   return domWithAddedIds;
 }
 
+// export function addSectionsToHeaderTags(htmlString) {
+//   const dom = new JSDOM(htmlString);
+//   const document = dom.window.document;
+
+//   const divElement = document.querySelector('div');
+
+//   let currentSection = null;
+
+//   function appendCurrentSection() {
+//     if (currentSection && currentSection.childNodes.length > 0) {
+//       divElement.appendChild(currentSection);
+//     }
+//     currentSection = null;
+//   }
+
+//   function processChild(child) {
+//     if (child.tagName && child.tagName.startsWith('H')) {
+//       appendCurrentSection();
+
+//       currentSection = document.createElement('section');
+//       currentSection.id = child.id; // Set the section id to the heading id
+//       child.removeAttribute('id'); // Remove the id from the heading
+//       currentSection.appendChild(child); // Move the heading into the section
+//     } else if (child.tagName === 'SECTION') {
+//       // Recursively process children of the nested section
+//       Array.from(child.childNodes).forEach(processChild);
+//       appendCurrentSection();
+//     } else if (currentSection) {
+//       currentSection.appendChild(child);
+//     } else {
+//       // If there is no current section, create a temporary section to hold non-heading content
+//       currentSection = document.createElement('section');
+//       currentSection.appendChild(child);
+//     }
+//   }
+
+//   // Convert childNodes to an array to avoid issues when modifying the DOM while iterating
+//   Array.from(divElement.childNodes).forEach(processChild);
+
+//   // Append the last section if it exists and has content
+//   appendCurrentSection();
+
+//   // Remove any initially empty sections that might have been created
+//   Array.from(divElement.querySelectorAll('section')).forEach((section) => {
+//     if (section.childNodes.length === 0) {
+//       section.remove();
+//     }
+//   });
+
+//   return dom.serialize();
+// }
+
 export function addSectionsToHeaderTags(htmlString) {
   const dom = new JSDOM(htmlString);
   const document = dom.window.document;
@@ -319,17 +371,40 @@ export function addSectionsToHeaderTags(htmlString) {
       // Recursively process children of the nested section
       Array.from(child.childNodes).forEach(processChild);
       appendCurrentSection();
-    } else if (currentSection) {
-      currentSection.appendChild(child);
     } else {
-      // If there is no current section, create a temporary section to hold non-heading content
-      currentSection = document.createElement('section');
+      if (!currentSection) {
+        currentSection = document.createElement('section');
+      }
       currentSection.appendChild(child);
     }
   }
 
+  function processMultipleHeadings(section) {
+    Array.from(section.childNodes).forEach((child) => {
+      if (child.tagName && child.tagName.startsWith('H')) {
+        appendCurrentSection();
+        currentSection = document.createElement('section');
+        currentSection.id = child.id; // Set the section id to the heading id
+        child.removeAttribute('id'); // Remove the id from the heading
+        currentSection.appendChild(child); // Move the heading into the section
+      } else {
+        if (!currentSection) {
+          currentSection = document.createElement('section');
+        }
+        currentSection.appendChild(child);
+      }
+    });
+    appendCurrentSection();
+  }
+
   // Convert childNodes to an array to avoid issues when modifying the DOM while iterating
-  Array.from(divElement.childNodes).forEach(processChild);
+  Array.from(divElement.childNodes).forEach((child) => {
+    if (child.tagName === 'SECTION') {
+      processMultipleHeadings(child);
+    } else {
+      processChild(child);
+    }
+  });
 
   // Append the last section if it exists and has content
   appendCurrentSection();
@@ -340,6 +415,22 @@ export function addSectionsToHeaderTags(htmlString) {
       section.remove();
     }
   });
+
+  // Ensure no empty sections remain
+  Array.from(divElement.querySelectorAll('section')).forEach((section) => {
+    if (!section.hasChildNodes() ||
+      (section.childNodes.length === 1 && section.firstChild.tagName && section.firstChild.tagName.startsWith('H'))) {
+      section.remove();
+    }
+  });
+
+  dom.serialize()
+
+   dom.window.document.querySelectorAll('section').forEach((section)=>{
+    if(section.textContent.trim() == ''){
+      section.remove()
+    }
+  })
 
   return dom.serialize();
 }
