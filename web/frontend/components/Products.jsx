@@ -75,39 +75,41 @@ const Products = () => {
 
   return ( 
     data && data.length > 0 && 
-    <Page 
-      title="Products" 
-      fullWidth
-      pagination={{
-        hasPrevious: true,
-        hasNext: true,
-      }}
-      // style={{backgroundColor: 'red'}}
-      // className="p-0"
-      // className={styles.test}
-      // className="test"
-      className="p-0"
-      >
-        <LegacyCard>
-          <DataTable
-            columnContentTypes={[
-              'text',
-              'text',
-              'numeric',
-            ]}
-            headings={[
-              'Name',
-              'TOC',
-              'Actions'
-            ]}
-            rows={rows}
-            pagination={{
-              hasNext: true,
-              onNext: () => {},
-            }}
-          />
-        </LegacyCard>
-      </Page>
+    <div className="products-wrapper">
+      <Page 
+        title="Products" 
+        fullWidth
+        pagination={{
+          hasPrevious: true,
+          hasNext: true,
+        }}
+        // style={{backgroundColor: 'red'}}
+        // className="p-0"
+        // className={styles.test}
+        // className="test"
+        // className="!p-0"
+        >
+          <LegacyCard>
+            <DataTable
+              columnContentTypes={[
+                'text',
+                'text',
+                'numeric',
+              ]}
+              headings={[
+                'Name',
+                'TOC',
+                'Actions'
+              ]}
+              rows={rows}
+              pagination={{
+                hasNext: true,
+                onNext: () => {},
+              }}
+            />
+          </LegacyCard>
+        </Page>
+      </div>
     );
 }
 

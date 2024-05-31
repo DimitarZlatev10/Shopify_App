@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.test {
+.products-wrapper > div {
   padding: 0;
 }

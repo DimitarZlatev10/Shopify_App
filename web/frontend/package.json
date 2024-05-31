@@ -32,6 +32,7 @@
     "react-i18next": "^13.0.0",
     "react-query": "^3.34.19",
     "react-router-dom": "^6.3.0",
+    "unocss": "^0.60.3",
     "vite": "^4.3.9"
   },
   "devDependencies": {

@@ -1,11 +1,11 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./frontend/**/*.{html,js}"],
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}", // Adjust the paths to match your project's structure
+    "./public/index.html",
+    "./node_modules/@shopify/polaris/**/*.{js,jsx,ts,tsx}",
+  ],
   theme: {
     extend: {},
   },
   plugins: [],
-  corePlugins: {
-    preflight: false,
-  },
 };

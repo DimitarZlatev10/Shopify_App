@@ -100,7 +100,7 @@ export function ProductsCard() {
 
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
-            <Text variant="bodyMd" as="span" fontWeight="semibold">
+            <Text variant="bodyMd" as="span" fontWeight="semibold" color="warning">
               {isLoadingCount ? "-" : data?.length}
             </Text>
           </Text>
@@ -121,7 +121,7 @@ export function ProductsCard() {
 
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
-            <Text variant="bodyMd" as="p" fontWeight="semibold">
+            <Text variant="bodyMd" as="span" fontWeight="semibold" color="warning">
               {isLoadingCount ? "-" : productsWithoutToc?.length}
             </Text>
           </Text>
