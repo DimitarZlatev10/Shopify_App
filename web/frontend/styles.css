@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.products-wrapper > div {
+  padding: 0;
+}
