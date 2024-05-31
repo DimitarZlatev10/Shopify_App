@@ -3,7 +3,7 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://actions-enhancing-minister-involves.trycloudflare.com"
+application_url = "https://fortune-icon-cbs-organised.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://actions-enhancing-minister-involves.trycloudflare.com/auth/callback",
-  "https://actions-enhancing-minister-involves.trycloudflare.com/auth/shopify/callback",
-  "https://actions-enhancing-minister-involves.trycloudflare.com/api/auth/callback"
+  "https://fortune-icon-cbs-organised.trycloudflare.com/auth/callback",
+  "https://fortune-icon-cbs-organised.trycloudflare.com/auth/shopify/callback",
+  "https://fortune-icon-cbs-organised.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
