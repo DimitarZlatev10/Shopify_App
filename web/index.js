@@ -12,6 +12,7 @@ import {
   getAllProducts,
   generateTocForSingleProduct,
   editProductToc,
+  getProductsPerPage,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -59,8 +60,27 @@ app.use(express.json());
 // });
 
 app.get("/api/products/count", async (_req, res) => {
-
   const products = await getAllProducts(res.locals.shopify.session);
+
+  res.status(200).send(products);
+});
+
+app.get("/api/products", async (_req, res) => {
+  const currentPage = _req.query.page ?? 0;
+  const productsPerPage = _req.query.limit ?? 10;
+
+  console.log("_req.query", _req);
+
+  // console.log("kur", currentPage, productsPerPage);
+
+  const products = await getProductsPerPage(
+    res.locals.shopify.session,
+    currentPage,
+    productsPerPage
+    // cursor
+  );
+
+  console.log("products", Object.keys(products).length);
 
   res.status(200).send(products);
 });
@@ -68,8 +88,6 @@ app.get("/api/products/count", async (_req, res) => {
 app.post("/api/products", async (_req, res) => {
   let status = 200;
   let error = null;
-
-  console.log(res.locals.shopify.session);
 
   try {
     await productCreator(res.locals.shopify.session);
@@ -105,7 +123,7 @@ app.post("/api/generateToc", async (_req, res) => {
 
   try {
     await productHtmlDescriptionFormatter(res.locals.shopify.session);
-    console.log('kur')
+    console.log("kur");
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
