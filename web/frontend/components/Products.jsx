@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Loading } from '@shopify/app-bridge-react';
 import { useTranslation } from 'react-i18next';
 import {Page, LegacyCard, DataTable, Link, Button} from '@shopify/polaris';
 import {PlusIcon} from '@shopify/polaris-icons';
@@ -61,10 +62,14 @@ const Products = () => {
     }
   }
 
+  const splitElement = (element) => {
+    return element.id.matches("^[0-9].*");
+  }
+
   const rows = data?.products && data?.products.length > 0 && data?.products.map((element) => {
     return [<Link
         removeUnderline
-        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${element.id}`}
+        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${splitElement(element)}`}
         key="emerald-silk-gown"
       >
         {element.title}
@@ -73,43 +78,43 @@ const Products = () => {
       !element.isTocGenerated ? <Button icon={PlusIcon} onClick={(event) => handleGenerateTOC(event, element)}>Generate TOC</Button> : null]
   });
 
-  const handlePreviousPage = () => {
+  const handlePreviousPage = async () => {
     console.log('here is the previous page');
-    if (currentPage > 1) {
+    setIsLoading(true);
+    
+    if (!data?.pageInfo?.hasNextPage) {
       setCurrentPage(currentPage - 1);
+      await refetchProducts();
+      setIsLoading(false);
     }
   };
 
   const handleNextPage = async () => {
-    console.log('here in the next page', data?.pageInfo);
-    console.log('data?.pageInfo?.endCursor', data?.pageInfo?.endCursor);
+    setIsLoading(true);
+    setCurrentPage(currentPage + 1);
     if (data?.pageInfo?.hasNextPage) {
-      const response = await fetch("/api/products", { 
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-          productsPerPage: 10,
-          currentPage: currentPage,
-          cursor: data?.pageInfo?.endCursor
-        }
-      });
+      // const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
+      //   method: "GET",
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     productsPerPage: 10,
+      //     cursor: data?.pageInfo?.endCursor ?? ""
+      //   },
+      // });
+      await refetchProducts();
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    console.log('HERE');
-    // refetchProducts();
-  }, [currentPage]);
-
   return ( 
-    data?.products && data?.products.length > 0 && 
+    data?.products && data?.products.length > 0 ? 
     <div className="products-wrapper">
       <Page 
         title="Products" 
         fullWidth
         pagination={{
           hasPrevious: currentPage > 1,
-          onPrevious: handlePreviousPage,
+          onPrevious: () => handlePreviousPage(),
           hasNext: data?.pageInfo?.hasNextPage,
           onNext: () => handleNextPage()
         }}
@@ -130,7 +135,7 @@ const Products = () => {
             />
           </LegacyCard>
         </Page>
-      </div>
+      </div> : <Loading />
     );
 }
 

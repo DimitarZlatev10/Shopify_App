@@ -105,28 +105,6 @@ query shopInfo {
   }
 }`;
 
-const ALL_PRODUCTS_QUERY = `
-  query AllProducts(
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) {
-    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
-      nodes {
-        ...ProductCard
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
-    }
-  }
-  ${PRODUCT_CARD_FRAGMENT}
-`;
-
 const GET_SINGLE_PRODUCT_QUERY = `
 query getSingleProduct($id : ID!) {
   product(id: $id) {
@@ -146,13 +124,38 @@ query getSingleProduct($id : ID!) {
   }
 }`;
 
-const GET_PRODUCTS_PER_PAGE = `
-query ($numProducts: Int!, $cursor: String!) {
+const GET_NEXT_PRODUCTS_PER_PAGE = `
+query ($numProducts: Int!, $cursor: String){
   products(first: $numProducts, after: $cursor) {
     nodes {
       title
       id
-      descriptionHtml
+      # descriptionHtml
+      metafields(first: 10) {
+        edges {
+          node {
+            id
+            namespace
+            key
+            value
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}`;
+
+const GET_PREV_PRODUCTS_PER_PAGE = `
+query ($numProducts: Int!, $cursor: String){
+  products(last: $numProducts, before: $cursor) {
+    nodes {
+      title
+      id
+      # descriptionHtml
       metafields(first: 10) {
         edges {
           node {
@@ -1130,28 +1133,28 @@ export async function getProductsPerPage(
   session,
   currentPage,
   productsPerPage,
-  cursor
+  cursor,
+  pageInfo
+  // products
 ) {
   const client = new shopify.api.clients.Graphql({ session });
 
+  console.log("pageInfo.hasNextPage", pageInfo?.hasNextPage);
   console.log("cursor", cursor);
-  console.log("currentPage", typeof currentPage);
-  console.log("productsPerPage", typeof productsPerPage);
+
+  const info = cursor === null || pageInfo.hasNextPage ? true : false;
+  console.log("info", info);
 
   try {
     const response = await client.query({
       data: {
-        query: GET_PRODUCTS_PER_PAGE,
+        query: info ? GET_NEXT_PRODUCTS_PER_PAGE : GET_PREV_PRODUCTS_PER_PAGE,
         variables: {
           numProducts: +productsPerPage,
-          cursor: cursor
-            ? cursor
-            : "eyJsYXN0X2lkIjo5NDk1ODExMzI2MjMzLCJsYXN0X3ZhbHVlIjoiOTQ5NTgxMTMyNjIzMyJ9",
+          cursor: cursor,
         },
       },
     });
-
-    console.log("response.body.data", response.body.data);
 
     const products = response.body.data.products.nodes;
     const pageInfo = response.body.data.products.pageInfo;

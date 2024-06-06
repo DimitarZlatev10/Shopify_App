@@ -65,22 +65,19 @@ app.get("/api/products/count", async (_req, res) => {
   res.status(200).send(products);
 });
 
+var products = [];
 app.get("/api/products", async (_req, res) => {
   const currentPage = _req.query.page ?? 0;
   const productsPerPage = _req.query.limit ?? 10;
+  const cursor = products?.pageInfo?.endCursor ?? null;
 
-  console.log("_req.query", _req);
-
-  // console.log("kur", currentPage, productsPerPage);
-
-  const products = await getProductsPerPage(
+  products = await getProductsPerPage(
     res.locals.shopify.session,
     currentPage,
-    productsPerPage
-    // cursor
+    productsPerPage,
+    cursor,
+    products?.pageInfo
   );
-
-  console.log("products", Object.keys(products).length);
 
   res.status(200).send(products);
 });
