@@ -170,7 +170,6 @@ window.onload = function () {
         lastScrollTop = scrollTop;
     });
 
-            // Create a new button element
         var button = document.createElement("button");
 
         // Set the button's id to "tocButton"
@@ -190,38 +189,68 @@ window.onload = function () {
             }
         });
 
-        let lastScrollTop2 = 0;
+    let lastScrollTop2 = 0;
 
-document.addEventListener('scroll', function() {
-    const toc = document.querySelector('.mobile-toc.open');
-    const footer = document.querySelector('.footer');
-    const viewportHeight = window.innerHeight;
+    document.addEventListener('scroll', function() {
+        const toc = document.querySelector('.mobile-toc.open');
+        const footer = document.querySelector('.footer');
+        const viewportHeight = window.innerHeight;
 
-    const footerRect = footer.getBoundingClientRect();
-    const scrollTop = window.scrollY;
+        const footerRect = footer.getBoundingClientRect();
+        const scrollTop = window.scrollY;
 
-    if (footerRect.top <= viewportHeight + 400) { 
-    toc.classList.add('sticky');
-        toc.classList.remove('scrolling');
-    } else {
-        toc.classList.remove('sticky');
-        toc.classList.add('scrolling');
-    }
+        if (toc) { // Ensure toc is defined before manipulating classes
+            if (footerRect.top <= viewportHeight + 400) { 
+                toc.classList.add('sticky');
+                toc.classList.remove('scrolling');
+            } else {
+                toc.classList.remove('sticky');
+                toc.classList.add('scrolling');
+            }
 
-    if (scrollTop < lastScrollTop2) {
-        toc.classList.add('top-page');
-    } else {
-        toc.classList.remove('top-page');
-    }
+            if (scrollTop < lastScrollTop2) {
+                toc.classList.add('top-page');
+            } else {
+                toc.classList.remove('top-page');
+            }
 
-    if (scrollTop === 0) {
-        toc.classList.add('top-top');
-    } else {
-        toc.classList.remove('top-top');
-    }
+            if (scrollTop === 0) {
+                toc.classList.add('top-top');
+            } else {
+                toc.classList.remove('top-top');
+            }
+        }
 
-    lastScrollTop2 = scrollTop;
-});
+        lastScrollTop2 = scrollTop;
+    });
 
+        // Close TOC when clicking outside or after a certain inactivity period
+        const tocElement = document.querySelector('.mobile-toc');
+        const tocButton = document.querySelector('#tocButton');
+        let tocTimeout;
+
+        document.addEventListener('click', function(event) {
+            const isInsideToc = tocElement.contains(event.target) || tocButton.contains(event.target);
+
+            if (!isInsideToc) {
+                tocElement.classList.remove('open');
+                resetTocTimeout();
+            } else {
+                resetTocTimeout();
+            }
+        });
+
+        // Reset the inactivity timeout when hovering, clicking or scrolling on the TOC
+        tocElement.addEventListener('mousemove', resetTocTimeout);
+        tocElement.addEventListener('click', resetTocTimeout);
+        tocElement.addEventListener('scroll', resetTocTimeout);
+
+        // Close the TOC after a period of inactivity
+        function resetTocTimeout() {
+            clearTimeout(tocTimeout);
+            tocTimeout = setTimeout(() => {
+                tocElement.classList.remove('open');
+            }, 3000); // Close TOC after 3 seconds of inactivity
+        }
 
 };
