@@ -152,7 +152,7 @@ window.onload = function () {
         const scrollTop = window.scrollY;
 
         // Adjust TOC position based on footer visibility
-        if (footerRect.top <= viewportHeight + 400) { // 100px before footer is visible
+        if (footerRect.top <= viewportHeight + 100) { // 100px before footer is visible
             toc.classList.add('sticky');
             toc.classList.remove('scrolling');
         } else {
@@ -169,5 +169,59 @@ window.onload = function () {
 
         lastScrollTop = scrollTop;
     });
+
+            // Create a new button element
+        var button = document.createElement("button");
+
+        // Set the button's id to "tocButton"
+        button.id = "tocButton";
+
+        // Append the button to the body of the document
+        document.body.appendChild(button);
+
+        // Add a click event listener to the button to toggle the navigation menu
+        button.addEventListener("click", function() {
+            // Get the navigation element with the class "mobile-toc"
+            var nav = document.querySelector(".mobile-toc");
+
+            // Toggle the "open" class on the navigation element
+            if (nav) {
+                nav.classList.toggle("open");
+            }
+        });
+
+        let lastScrollTop2 = 0;
+
+document.addEventListener('scroll', function() {
+    const toc = document.querySelector('.mobile-toc.open');
+    const footer = document.querySelector('.footer');
+    const viewportHeight = window.innerHeight;
+
+    const footerRect = footer.getBoundingClientRect();
+    const scrollTop = window.scrollY;
+
+    if (footerRect.top <= viewportHeight + 400) { 
+    toc.classList.add('sticky');
+        toc.classList.remove('scrolling');
+    } else {
+        toc.classList.remove('sticky');
+        toc.classList.add('scrolling');
+    }
+
+    if (scrollTop < lastScrollTop2) {
+        toc.classList.add('top-page');
+    } else {
+        toc.classList.remove('top-page');
+    }
+
+    if (scrollTop === 0) {
+        toc.classList.add('top-top');
+    } else {
+        toc.classList.remove('top-top');
+    }
+
+    lastScrollTop2 = scrollTop;
+});
+
 
 };
