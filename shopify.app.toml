@@ -3,7 +3,7 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://actions-enhancing-minister-involves.trycloudflare.com"
+application_url = "https://multiple-canyon-funny-safari.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_files,write_files,write_products"
 
 [auth]
 redirect_urls = [
-  "https://actions-enhancing-minister-involves.trycloudflare.com/auth/callback",
-  "https://actions-enhancing-minister-involves.trycloudflare.com/auth/shopify/callback",
-  "https://actions-enhancing-minister-involves.trycloudflare.com/api/auth/callback"
+  "https://multiple-canyon-funny-safari.trycloudflare.com/auth/callback",
+  "https://multiple-canyon-funny-safari.trycloudflare.com/auth/shopify/callback",
+  "https://multiple-canyon-funny-safari.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
