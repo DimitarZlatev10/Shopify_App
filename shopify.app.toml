@@ -3,7 +3,7 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://multiple-canyon-funny-safari.trycloudflare.com"
+application_url = "https://fortune-icon-cbs-organised.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_files,write_files,write_products"
 
 [auth]
 redirect_urls = [
-  "https://multiple-canyon-funny-safari.trycloudflare.com/auth/callback",
-  "https://multiple-canyon-funny-safari.trycloudflare.com/auth/shopify/callback",
-  "https://multiple-canyon-funny-safari.trycloudflare.com/api/auth/callback"
+  "https://fortune-icon-cbs-organised.trycloudflare.com/auth/callback",
+  "https://fortune-icon-cbs-organised.trycloudflare.com/auth/shopify/callback",
+  "https://fortune-icon-cbs-organised.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
