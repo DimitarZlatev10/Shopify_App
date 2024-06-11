@@ -3,6 +3,7 @@ import shopify from "./shopify.js";
 import createToc from "./toc.js";
 import createProductDescription from "./product-description.js";
 import { DEFAULT_PRODUCTS_COUNT } from "./constants.js";
+import { readFromFile, writeToFile } from "./fileWriter.js";
 
 const ADJECTIVES = [
   "autumn",
@@ -37,7 +38,6 @@ const ADJECTIVES = [
   "green",
   "long",
 ];
-
 const NOUNS = [
   "waterfall",
   "river",
@@ -71,7 +71,6 @@ const NOUNS = [
   "fire",
   "flower",
 ];
-
 const CREATE_PRODUCTS_MUTATION = `
   mutation populateProduct($input: ProductInput!) {
     productCreate(input: $input) {
@@ -81,7 +80,6 @@ const CREATE_PRODUCTS_MUTATION = `
     }
   }
 `;
-
 const GET_ALL_PRODUCTS_QUERY = `
 query shopInfo {
   products(first: 50) {
@@ -104,7 +102,6 @@ query shopInfo {
     }
   }
 }`;
-
 const GET_SINGLE_PRODUCT_QUERY = `
 query getSingleProduct($id : ID!) {
   product(id: $id) {
@@ -123,7 +120,6 @@ query getSingleProduct($id : ID!) {
     }
   }
 }`;
-
 const GENERATE_TOC_FOR_PRODUCT_MUTATION = `
 mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: String!) {
   productUpdate(
@@ -150,52 +146,6 @@ mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: Strin
   }
 }
 `;
-
-const EDIT_TOC_FOR_PRODUCT_MUTATION = `
-mutation UpdateProduct($id: ID!, $metafieldToc: String!, $metafieldId: ID!) {
-  productUpdate(
-    input: {
-      id: $id,
-      metafields: [
-        {
-          id: $metafieldId,
-          value: $metafieldToc,
-        }
-      ]
-    }
-  ) {
-    product {
-      id
-      descriptionHtml
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}
-`;
-
-const EDIT_DESCRIPTION_HTML_FOR_PRODUCT_MUTATION = `
-mutation UpdateProduct($id: ID!, $descriptionHtml: String!) {
-  productUpdate(
-    input: {
-      id: $id,
-      descriptionHtml: $descriptionHtml,
-    }
-  ) {
-    product {
-      id
-      descriptionHtml
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}
-`;
-
 const UPDATE_PRODUCT_HTML_AND_METAFIELD_MUTATION = `mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldId: ID!, $metafieldValue: String!) {
   productUpdate(
     input: {
@@ -230,6 +180,120 @@ const UPDATE_PRODUCT_HTML_AND_METAFIELD_MUTATION = `mutation UpdateProduct($id: 
   }
 }
 `
+const GET_ALL_CONTENT_FILES_QUERY = `query {
+  files(first: 250) {
+    edges {
+      node {
+        createdAt
+        updatedAt
+        alt
+        ... on MediaImage {
+          id
+          image {
+            id
+            originalSrc: url
+            width
+            height
+            altText
+            url
+          }
+        }
+      }
+    }
+  }
+}
+
+`
+const CREATE_FILE_MUTATION = `
+mutation fileCreate($files: [FileCreateInput!]!) {
+  fileCreate(files: $files) {
+    files {
+      alt
+      createdAt
+    }
+  }
+}
+`
+const WRITE_PRODUCTS_QUERY = `
+query {
+  products(first:2){
+    edges{
+      node{
+        title
+        descriptionHtml
+        metafields(first:250){
+          edges{
+            node{
+              key
+              namespace
+              value
+            }
+          }
+        }
+       images(first:250) {
+         edges {
+           node {
+            url
+            altText
+           }
+         }
+       }
+      }
+    }
+  }
+  }
+`
+const READ_PRODUCTS_MUTATION = `
+mutation createProduct($title: String,
+  $descriptionHtml : String,
+  $metafields: [MetafieldInput!],
+  $media : [CreateMediaInput!]
+) {
+  productCreate(input :{
+    title: $title,
+    descriptionHtml : $descriptionHtml,
+    metafields : $metafields,
+  },
+    media: $media
+ ) {
+    product{
+      title
+    }
+  }
+}
+`
+const READ_PRODUCTS_METAFIELDS_QUERY = `
+{
+  metafieldDefinitions(ownerType:PRODUCT, first:250) {
+    edges {
+      node {
+        description
+        key
+        namespace
+        name
+        ownerType
+        type{
+          name
+        }  
+      }
+    }
+  }
+}
+`
+const CREATE_PRODUCT_METAFIELD_MUTATION = `
+mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+  metafieldDefinitionCreate(definition: $definition) {
+    createdDefinition {
+      id
+      name
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}`
 
 export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   const client = new shopify.api.clients.Graphql({ session });
@@ -1140,29 +1204,197 @@ export async function editProductToc(product_gid, product_body_html) {
         },
       },
     });
-
-    //   await client.query({
-    //     data: {
-    //       query: EDIT_TOC_FOR_PRODUCT_MUTATION,
-    //       variables: {
-    //         id: product_id,
-    //         metafieldId: product_metafield_id,
-    //         metafieldToc: toc.tocHtml,
-    //       },
-    //     },
-    //   });
-
-    //  await client.query({
-    //     data: {
-    //       query: EDIT_DESCRIPTION_HTML_FOR_PRODUCT_MUTATION,
-    //       variables: {
-    //         id: product_id,
-    //         descriptionHtml: generateProductDescription,
-    //       },
-    //     },
-    //   });
   }
 }
+
+export async function downloadImagesUrls(session){
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const response = await client.query({
+    data: {
+      query: GET_ALL_CONTENT_FILES_QUERY,
+    },
+  });
+
+  const imagesUrls = []
+
+  const files = response.body.data.files.edges
+  files.forEach((file)=>{
+
+    if(file.node.image.url){
+      let altText = file.node.alt
+      let imageUrl = file.node.image.url
+
+      imagesUrls.push({
+        alt : altText,
+        contentType : "IMAGE",
+        originalSource : imageUrl
+      })
+    }
+  })
+
+  try {
+    await writeToFile(imagesUrls, '/home/dimitar/kur.txt');
+    console.log('File writing completed successfully.');
+  } catch (error) {
+    console.error('Failed to write file:', error);
+  }
+}
+
+export async function importImages(session){
+  const client = new shopify.api.clients.Graphql({ session });
+  
+  const imageUrls = await readFromFile('/home/dimitar/kur.txt')
+
+    try {
+      await client.query({
+        data: {
+          query: CREATE_FILE_MUTATION,
+          variables: {
+            files : imageUrls
+          },
+        },
+      });
+    } catch (error) {
+      console.log('error creating file', error);
+    }
+
+}
+
+export async function writeProducts(session){
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const response = await client.query({
+    data: {
+      query: WRITE_PRODUCTS_QUERY,
+    },
+  });
+
+  const productsInfo = []
+
+  response.body.data.products.edges.forEach(product=>{
+    const title = product.node.title
+    const descriptionHtml = product.node.descriptionHtml
+    const metafields = []
+     product.node.metafields.edges.forEach((metafield)=>{
+       metafields.push({
+        key : metafield.node.key,
+        namespace : metafield.node.namespace,
+        value : metafield.node.value
+       }) 
+    })
+    const images = []
+    product.node.images.edges.forEach((image)=>{
+      console.log(image.node.url);
+      images.push({
+        originalSource: image.node.url,
+        alt : image.node.altText,
+        mediaContentType : "IMAGE"
+      })
+    })
+
+    productsInfo.push({
+      title:title,
+      descriptionHtml:descriptionHtml,
+      metafields : metafields,
+      images:images
+    })
+  })
+
+  try {
+    await writeToFile(productsInfo, '/home/dimitar/products.txt');
+    console.log('Products writing completed successfully.');
+  } catch (error) {
+    console.error('Failed to write products:', error);
+  }
+
+}
+
+export async function readProducts(session){
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const productsInfo = await readFromFile('/home/dimitar/products.txt')
+
+  productsInfo.forEach(async(product)=>{
+    try {
+      await client.query({
+        data: {
+          query: READ_PRODUCTS_MUTATION,
+          variables: {
+            title : product.title,
+            descriptionHtml : product.descriptionHtml,
+            metafields : product.metafields,
+            media : product.images
+          },
+        },
+      });
+    } catch (error) {
+      console.log('error creating file', error);
+    }   
+  })
+
+}
+
+export async function writeProductsMetafields(session){
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const response = await client.query({
+    data: {
+      query: READ_PRODUCTS_METAFIELDS_QUERY,
+    },
+  });
+
+  const metafields = response.body.data.metafieldDefinitions.edges
+
+  const productsMetafields = []
+
+  metafields.forEach((metafield)=>{
+    productsMetafields.push({
+      description : metafield.node.description,
+      key : metafield.node.key,
+      namespace : metafield.node.namespace,
+      name : metafield.node.name,
+      type : metafield.node.type.name,
+      ownerType : metafield.node.ownerType
+    })
+  })
+
+  try {
+    await writeToFile(productsMetafields, '/home/dimitar/productsMetafields.txt');
+    console.log('Products writing completed successfully.');
+  } catch (error) {
+    console.error('Failed to write products:', error);
+  }
+}
+
+export async function readProductsMetafields(session){
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const productsMetafields = await readFromFile('/home/dimitar/productsMetafields.txt')
+
+  productsMetafields.forEach(async(metafield)=>{
+    try {
+      await client.query({
+        data: {
+          query: CREATE_PRODUCT_METAFIELD_MUTATION,
+          variables: {
+           definition : {
+            name : metafield.name,
+            namespace : metafield.namespace,
+            key : metafield.key,
+            description : metafield.description,
+            type : metafield.type,
+            ownerType : metafield.ownerType
+           }
+          },
+        },
+      });
+    } catch (error) {
+      console.log('error creating product metafield', error);
+    }   
+  })
+}
+
 
 function randomTitle() {
   const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
