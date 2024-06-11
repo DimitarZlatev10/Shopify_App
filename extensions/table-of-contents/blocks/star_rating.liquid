@@ -1,9 +1,5 @@
 {% if product.metafields.custom.toc %}
-  <div style="color: {{ block.settings.colour }}">
-    {{ product.metafields.custom.toc.value | raw }}
-  </div>
-{% else %}
-  <p>No TOC metafield available.</p>
+    {{ product.metafields.custom.toc.value }}
 {% endif %}
 
 {% schema %}

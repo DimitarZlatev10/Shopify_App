@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { VerticalStack, Text, CalloutCard } from "@shopify/polaris";
-import { Toast } from "@shopify/app-bridge-react"; 
+import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
@@ -29,7 +29,7 @@ export function ProductsCard() {
     },
   });
 
-  console.log('data', data);
+  console.log("data", data);
 
   useEffect(() => {
     if (data && Array.isArray(data)) {
@@ -82,6 +82,130 @@ export function ProductsCard() {
     }
   };
 
+  const downalodImagesUrls = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/downloadImagesUrls", { method: "POST" });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const importImages = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/importImages", { method: "POST" });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const writeProducts = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/writeProducts", { method: "POST" });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const readProducts = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/readProducts", { method: "POST" });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const writeProductsMetafields = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/products/writeMetafields", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const readProductsMetafields = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/products/readMetafields", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
   return (
     <>
       {toastMarkup}
@@ -96,17 +220,24 @@ export function ProductsCard() {
         }}
       >
         <VerticalStack spacing="loose">
-          <p style={{ marginBottom: '15px' }}>{t("ProductsCard.description")}</p>
+          <p style={{ marginBottom: "15px" }}>
+            {t("ProductsCard.description")}
+          </p>
 
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
-            <Text variant="bodyMd" as="span" fontWeight="semibold" color="warning">
+            <Text
+              variant="bodyMd"
+              as="span"
+              fontWeight="semibold"
+              color="warning"
+            >
               {isLoadingCount ? "-" : data?.length}
             </Text>
           </Text>
         </VerticalStack>
       </CalloutCard>
-      <CalloutCard
+      {/* <CalloutCard
         title={t("Toc.title")}
         primaryAction={{
           content: t("Toc.generateToc", {
@@ -117,14 +248,82 @@ export function ProductsCard() {
         }}
       >
         <VerticalStack spacing="loose">
-          <p style={{ marginBottom: '15px' }}>{t("Toc.description")}</p>
+          <p style={{ marginBottom: "15px" }}>{t("Toc.description")}</p>
 
           <Text as="h4" variant="headingMd">
             {t("Toc.tocHeading")}
-            <Text variant="bodyMd" as="span" fontWeight="semibold" color="warning">
+            <Text
+              variant="bodyMd"
+              as="span"
+              fontWeight="semibold"
+              color="warning"
+            >
               {isLoadingCount ? "-" : productsWithoutToc?.length}
             </Text>
           </Text>
+        </VerticalStack>
+      </CalloutCard> */}
+      {/* <CalloutCard
+        title={t("Images.title")}
+        primaryAction={{
+          content: t("Images.downloadImages", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: downalodImagesUrls,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Images.importImages", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: importImages,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Images.description")}</p>
+        </VerticalStack>
+      </CalloutCard> */}
+      <CalloutCard
+        title={t("Products.title")}
+        primaryAction={{
+          content: t("Products.writeProducts", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeProducts,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Products.readProducts", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readProducts,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Products.description")}</p>
+        </VerticalStack>
+      </CalloutCard>
+      <CalloutCard
+        title={t("Metafields.title")}
+        primaryAction={{
+          content: t("Metafields.writeMetafields", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeProductsMetafields,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Metafields.readMetafields", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readProductsMetafields,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
         </VerticalStack>
       </CalloutCard>
     </>

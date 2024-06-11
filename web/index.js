@@ -11,7 +11,12 @@ import {
   productHtmlDescriptionFormatter,
   getAllProducts,
   generateTocForSingleProduct,
-  editProductToc,
+  downloadImagesUrls,
+  importImages,
+  writeProducts,
+  readProducts,
+  writeProductsMetafields,
+  readProductsMetafields,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -106,6 +111,90 @@ app.post("/api/generateToc", async (_req, res) => {
   try {
     await productHtmlDescriptionFormatter(res.locals.shopify.session);
     console.log('kur')
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/downloadImagesUrls", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await downloadImagesUrls(res.locals.shopify.session);
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/importImages", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await importImages(res.locals.shopify.session)
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/writeProducts", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await writeProducts(res.locals.shopify.session);
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/readProducts", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await readProducts(res.locals.shopify.session);
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/products/writeMetafields", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await writeProductsMetafields(res.locals.shopify.session);
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/products/readMetafields", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await readProductsMetafields(res.locals.shopify.session);
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
