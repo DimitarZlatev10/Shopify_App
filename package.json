@@ -15,6 +15,7 @@
     "@langchain/openai": "^0.0.28",
     "@shopify/polaris-icons": "^9.1.0",
     "@shopify/shopify-api": "^7.7.0",
+    "deepl-node": "^1.13.0",
     "dompurify": "^3.1.2",
     "dotenv": "^16.4.5"
   },
