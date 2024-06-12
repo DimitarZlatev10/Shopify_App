@@ -18,21 +18,25 @@ export async function writeToFile(data, filename) {
   });
 }
 
-export async function readFromFile(filename) {
+export async function readFromFile(file) {
   return new Promise((resolve, reject) => {
-    fs.readFile(filename, 'utf8', (err, data) => {
-      if (err) {
-        console.error('Error reading from file:', err);
-        reject(err);
-      } else {
-        try {
-          const parsedData = JSON.parse(data);
-          resolve(parsedData);
-        } catch (parseErr) {
-          console.error('Error parsing JSON data:', parseErr);
-          reject(parseErr);
-        }
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      try {
+        const parsedData = JSON.parse(reader.result);
+        resolve(parsedData);
+      } catch (parseErr) {
+        console.error('Error parsing JSON data:', parseErr);
+        reject(parseErr);
       }
-    });
+    };
+    
+    reader.onerror = (error) => {
+      console.error('Error reading from file:', error);
+      reject(error);
+    };
+    
+    reader.readAsText(file);
   });
 }
