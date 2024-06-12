@@ -3,7 +3,7 @@ import shopify from "./shopify.js";
 import createToc from "./toc.js";
 import createProductDescription from "./product-description.js";
 import { DEFAULT_PRODUCTS_COUNT } from "./constants.js";
-import { readFromFile, writeToFile } from "./fileWriter.js";
+import { readFromFile, writeToFile } from "./frontend/utils/fileWriter.js";
 
 const ADJECTIVES = [
   "autumn",
@@ -1360,19 +1360,17 @@ export async function writeProductsMetafields(session){
   })
 
   try {
-    await writeToFile(productsMetafields, '/home/dimitar/productsMetafields.txt');
+    await writeToFile(productsMetafields, '/home/fabien/productsMetafields.txt');
     console.log('Products writing completed successfully.');
   } catch (error) {
     console.error('Failed to write products:', error);
   }
 }
 
-export async function readProductsMetafields(session){
+export async function readProductsMetafields(session,metafields){
   const client = new shopify.api.clients.Graphql({ session });
 
-  const productsMetafields = await readFromFile('/home/dimitar/productsMetafields.txt')
-
-  productsMetafields.forEach(async(metafield)=>{
+  metafields.forEach(async(metafield)=>{
     try {
       await client.query({
         data: {
@@ -1393,6 +1391,30 @@ export async function readProductsMetafields(session){
       console.log('error creating product metafield', error);
     }   
   })
+
+  // const productsMetafields = await readFromFile('/home/fabien/productsMetafields.txt')
+
+  // productsMetafields.forEach(async(metafield)=>{
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: CREATE_PRODUCT_METAFIELD_MUTATION,
+  //         variables: {
+  //          definition : {
+  //           name : metafield.name,
+  //           namespace : metafield.namespace,
+  //           key : metafield.key,
+  //           description : metafield.description,
+  //           type : metafield.type,
+  //           ownerType : metafield.ownerType
+  //          }
+  //         },
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.log('error creating product metafield', error);
+  //   }   
+  // })
 }
 
 
