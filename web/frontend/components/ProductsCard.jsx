@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import { VerticalStack, Text, CalloutCard } from "@shopify/polaris";
+import { useState, useEffect, useCallback } from "react";
+import { VerticalStack, Text, CalloutCard, LegacyStack, Thumbnail } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
+import DropZoneExample from "./DropZone.jsx";
+
 // import axios from "axios";
 
 export function ProductsCard() {
@@ -326,6 +328,8 @@ export function ProductsCard() {
           <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
         </VerticalStack>
       </CalloutCard>
+
+      <DropZoneExample />
     </>
   );
 }

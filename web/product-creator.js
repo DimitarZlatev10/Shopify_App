@@ -3,7 +3,7 @@ import shopify from "./shopify.js";
 import createToc from "./toc.js";
 import createProductDescription from "./product-description.js";
 import { DEFAULT_PRODUCTS_COUNT } from "./constants.js";
-import { readFromFile, writeToFile } from "./fileWriter.js";
+import { readFromFile, writeToFile } from "./frontend/utils/fileWriter.js";
 
 const ADJECTIVES = [
   "autumn",
@@ -1442,7 +1442,7 @@ export async function writeProductsMetafields(session) {
   try {
     await writeToFile(
       productsMetafields,
-      "/home/dimitar/productsMetafields.txt"
+      "/home/fabien/productsMetafields.txt"
     );
     console.log("Products writing completed successfully.");
   } catch (error) {

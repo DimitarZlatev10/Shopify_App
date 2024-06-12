@@ -228,8 +228,10 @@ app.post("/api/products/readMetafields", async (_req, res) => {
   let status = 200;
   let error = null;
 
+  console.log(_req.body.content);
+
   try {
-    await readProductsMetafields(res.locals.shopify.session);
+    await readProductsMetafields(res.locals.shopify.session, _req.body.content);
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
