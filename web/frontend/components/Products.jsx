@@ -15,17 +15,18 @@ const Products = () => {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(null);
   const productsPerPage = 10;
+  const [isPreviousClicked, setPreviousClicked] = useState(false);
+  const [isNextClicked, setNextClicked] = useState(false);
 
   const {
     data,
-    refetch: refetchProducts,
-    isLoading: isLoadingProducts,
-    isRefetching: isRefetchingProducts,
-
+    refetch: refetchProductCount,
+    isLoading: isLoadingCount,
+    isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: `/api/products?page=${currentPage}&limit=${productsPerPage}`,
+    url: `/api/products?shop=dimitar-shop-app-test.myshopify.com?=cursor=?=${currentPage}&limit=${productsPerPage}`,
     reactQueryOptions: {
       onSuccess: (data) => {
         setIsLoading(false);
@@ -33,21 +34,47 @@ const Products = () => {
     },
   });
 
+  useEffect(() => {
+    if (isNextClicked || isPreviousClicked) {
+      setIsLoading(true);
+      // setCurrentPage(currentPage + 1);
+      async function fetchData() {
+        // if (data?.pageInfo?.hasNextPage) {
+          console.log('HERE', currentPage);
+          const response = await fetch(`/api/products?cursor=?=${currentPage}&limit=${productsPerPage}`, {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          // await refetchProducts();
+        // }
+        setIsLoading(false);
+      }
+      fetchData();
+    }
+  }, [isNextClicked, isPreviousClicked])
+
   const handleGenerateTOC = async (event, element) => {
+    console.log('element', element);
+    // console.log('gid', gid);
     setIsLoading(true);
-    const response = await fetch("api/products", { 
-      method: "GET",
+    const response = await fetch("/api/generateTocPerProduct", { 
+      method: "POST",
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         gid: element.id,
-        descriptionHtml: element.descriptionHtml
+        descriptionHtml: element.descriptionHtml,
+        metafieldToc: element.metafields
       }),
     });
 
     if (response.ok) {
       await refetchProductCount();
+      // const response2 = await fetch('/api/products/count', { method: "GET" });
+
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
           count: productsCount,
@@ -63,13 +90,18 @@ const Products = () => {
   }
 
   const splitElement = (element) => {
-    return element.id.matches("^[0-9].*");
-  }
+    const parts = element.id.split('/');
+    const id = parts[parts.length - 1];
 
-  const rows = data?.products && data?.products.length > 0 && data?.products.map((element) => {
+    return id;
+  };
+
+  const rows = data && data?.products.length > 0 && data?.products.map((element) => {    
+    const productId = splitElement(element);
+
     return [<Link
         removeUnderline
-        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${splitElement(element)}`}
+        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${productId}`}
         key="emerald-silk-gown"
       >
         {element.title}
@@ -79,35 +111,51 @@ const Products = () => {
   });
 
   const handlePreviousPage = async () => {
-    console.log('here is the previous page');
-    setIsLoading(true);
-    
-    if (!data?.pageInfo?.hasNextPage) {
-      setCurrentPage(currentPage - 1);
-      await refetchProducts();
-      setIsLoading(false);
-    }
+    console.log('here2', currentPage);
+    setPreviousClicked(!isPreviousClicked);
+    setCurrentPage(currentPage - 1);
+
+    // if (currentPage === 0) {
+    //   return;
+    // }
+    // setIsLoading(true);
+    // setCurrentPage(currentPage - 1);
+    // const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
+    //   method: "GET",
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   }
+    // });
+    //  await refetchProducts();
+    // setIsLoading(false);
   };
 
-  const handleNextPage = async () => {
-    setIsLoading(true);
+  const handleNextPage = () => {
+    console.log('here1', currentPage);
+
+    setNextClicked(!isNextClicked);
     setCurrentPage(currentPage + 1);
-    if (data?.pageInfo?.hasNextPage) {
-      // const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
-      //   method: "GET",
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     productsPerPage: 10,
-      //     cursor: data?.pageInfo?.endCursor ?? ""
-      //   },
-      // });
-      await refetchProducts();
-      setIsLoading(false);
-    }
-  };
+    
+    // setIsLoading(true);
+    // setCurrentPage(currentPage + 1);
 
-  return ( 
-    data?.products && data?.products.length > 0 ? 
+    // if (data?.pageInfo?.hasNextPage) {
+    //   console.log('here1', currentPage);
+    //   const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
+    //     method: "GET",
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     }
+    //   });
+    //   // await refetchProducts();
+    // }
+    // setIsLoading(false);
+  };
+  
+  return (
+    // console.log('data.products.length', data?.products.length),
+
+    data && data?.products.length > 0 ? 
     <div className="products-wrapper">
       <Page 
         title="Products" 
@@ -115,8 +163,11 @@ const Products = () => {
         pagination={{
           hasPrevious: currentPage > 1,
           onPrevious: () => handlePreviousPage(),
-          hasNext: data?.pageInfo?.hasNextPage,
-          onNext: () => handleNextPage()
+          hasNext: data?.products.length > 10 || data?.pageInfo?.hasNextPage,
+          onNext: () => {
+            setCurrentPage(currentPage + 1);
+            handleNextPage();
+          }
         }}
         >
           <LegacyCard>
