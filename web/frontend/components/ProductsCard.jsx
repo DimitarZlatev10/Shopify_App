@@ -4,7 +4,7 @@ import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
-import DropZoneExample from "./DropZone.jsx";
+import Dropzone from "./Dropzone.jsx";
 
 // import axios from "axios";
 
@@ -329,7 +329,7 @@ export function ProductsCard() {
         </VerticalStack>
       </CalloutCard>
 
-      <DropZoneExample />
+      <Dropzone />
     </>
   );
 }

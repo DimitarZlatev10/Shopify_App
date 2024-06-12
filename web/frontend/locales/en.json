@@ -60,5 +60,9 @@
     "description": "Write All Products Metafields",
     "writeMetafields": "Write Metafields",
     "readMetafields": "Read Metafields"
+  },
+  "Dropzone": {
+    "successReadMessage": "File content read successfully",
+    "successWriteMessage": "File content wrote successfully"
   }
 }

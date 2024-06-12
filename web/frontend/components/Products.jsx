@@ -95,11 +95,6 @@ const Products = () => {
             hasPrevious: true,
             hasNext: true,
           }}
-          // style={{backgroundColor: 'red'}}
-          // className="p-0"
-          // className={styles.test}
-          // className="test"
-          // className="!p-0"
         >
           <LegacyCard>
             <DataTable
