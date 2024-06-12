@@ -59,15 +59,14 @@ const Products = () => {
     console.log('element', element);
     // console.log('gid', gid);
     setIsLoading(true);
-    const response = await fetch("/api/generateTocPerProduct", { 
+    const response = await fetch("/api/generateTocPerProduct", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         gid: element.id,
         descriptionHtml: element.descriptionHtml,
-        metafieldToc: element.metafields
       }),
     });
 
@@ -87,107 +86,60 @@ const Products = () => {
         error: true,
       });
     }
-  }
-
-  const splitElement = (element) => {
-    const parts = element.id.split('/');
-    const id = parts[parts.length - 1];
-
-    return id;
   };
 
-  const rows = data && data?.products.length > 0 && data?.products.map((element) => {    
-    const productId = splitElement(element);
+  const rows =
+    data &&
+    data.length > 0 &&
+    data.map((element) => {
+      return [
+        <Link
+          removeUnderline
+          url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${element.id}`}
+          key="emerald-silk-gown"
+        >
+          {element.title}
+        </Link>,
+        element.isTocGenerated ? "Yes" : "No",
+        !element.isTocGenerated ? (
+          <Button
+            icon={PlusIcon}
+            onClick={(event) => handleGenerateTOC(event, element)}
+          >
+            Generate TOC
+          </Button>
+        ) : null,
+      ];
+    });
 
-    return [<Link
-        removeUnderline
-        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${productId}`}
-        key="emerald-silk-gown"
-      >
-        {element.title}
-      </Link>,
-      element.isTocGenerated ? 'Yes' : 'No',
-      !element.isTocGenerated ? <Button icon={PlusIcon} onClick={(event) => handleGenerateTOC(event, element)}>Generate TOC</Button> : null]
-  });
-
-  const handlePreviousPage = async () => {
-    console.log('here2', currentPage);
-    setPreviousClicked(!isPreviousClicked);
-    setCurrentPage(currentPage - 1);
-
-    // if (currentPage === 0) {
-    //   return;
-    // }
-    // setIsLoading(true);
-    // setCurrentPage(currentPage - 1);
-    // const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
-    //   method: "GET",
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   }
-    // });
-    //  await refetchProducts();
-    // setIsLoading(false);
-  };
-
-  const handleNextPage = () => {
-    console.log('here1', currentPage);
-
-    setNextClicked(!isNextClicked);
-    setCurrentPage(currentPage + 1);
-    
-    // setIsLoading(true);
-    // setCurrentPage(currentPage + 1);
-
-    // if (data?.pageInfo?.hasNextPage) {
-    //   console.log('here1', currentPage);
-    //   const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
-    //     method: "GET",
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     }
-    //   });
-    //   // await refetchProducts();
-    // }
-    // setIsLoading(false);
-  };
-  
   return (
-    // console.log('data.products.length', data?.products.length),
-
-    data && data?.products.length > 0 ? 
-    <div className="products-wrapper">
-      <Page 
-        title="Products" 
-        fullWidth
-        pagination={{
-          hasPrevious: currentPage > 1,
-          onPrevious: () => handlePreviousPage(),
-          hasNext: data?.products.length > 10 || data?.pageInfo?.hasNextPage,
-          onNext: () => {
-            setCurrentPage(currentPage + 1);
-            handleNextPage();
-          }
-        }}
+    data &&
+    data.length > 0 && (
+      <div className="products-wrapper">
+        <Page
+          title="Products"
+          fullWidth
+          pagination={{
+            hasPrevious: true,
+            hasNext: true,
+          }}
+          // style={{backgroundColor: 'red'}}
+          // className="p-0"
+          // className={styles.test}
+          // className="test"
+          // className="!p-0"
         >
           <LegacyCard>
             <DataTable
-              columnContentTypes={[
-                'text',
-                'text',
-                'numeric',
-              ]}
-              headings={[
-                'Name',
-                'TOC',
-                'Actions'
-              ]}
+              columnContentTypes={["text", "text", "numeric"]}
+              headings={["Name", "TOC", "Actions"]}
               rows={rows}
             />
           </LegacyCard>
         </Page>
-      </div> : <Loading />
-    );
-}
+      </div>
+    )
+  );
+};
 
 export default Products;
