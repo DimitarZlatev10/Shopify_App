@@ -444,7 +444,6 @@ export function ProductsCard() {
 
       <Dropzone />
 
-      <LayoutExample />
 
     </>
   );
