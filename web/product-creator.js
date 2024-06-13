@@ -1143,21 +1143,27 @@ export async function writeProductsMetafields(session) {
   });
 
   try {
-    await writeToFile(productsMetafields, "/home/dimitar/Metafield_Definitions-Products.txt");
+    await writeToFile(productsMetafields, "/home/fabien/Metafield_Definitions-Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
   }
 }
 
-export async function readProductsMetafields(session) {
+export async function readProductsMetafields(session, metafields) {
+  // Ensure metafields is an array before proceeding
+  if (!Array.isArray(metafields)) {
+    console.error('Metafields is not an array:', metafields);
+    return; // Exit function early if metafields is not an array
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
-  const productsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Products.txt");
-
-  productsMetafields.forEach(async (metafield) => {
+  // Iterate over metafields array using for...of loop
+  for (const metafield of metafields) {
     try {
-      await client.query({
+      // Perform GraphQL query to create product metafield
+      const response = await client.query({
         data: {
           query: CREATE_PRODUCT_METAFIELD_MUTATION,
           variables: {
@@ -1167,16 +1173,25 @@ export async function readProductsMetafields(session) {
               key: metafield.key,
               description: metafield.description,
               type: metafield.type,
-              ownerType: metafield.ownerType,
-            },
+              ownerType: metafield.ownerType
+            }
           },
         },
       });
+
+      if (response.errors) {
+        // Handle GraphQL errors
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Metafield ${metafield.name} created successfully.`);
+      }
     } catch (error) {
-      console.log("error creating product metafield", error);
+      console.error('Error creating product metafield:', error);
     }
-  });
+  }
 }
+
+
 
 export async function writeCollections(session) {
   const client = new shopify.api.clients.Graphql({ session });
