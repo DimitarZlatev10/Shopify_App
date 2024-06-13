@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const url = 'https://api.deepl.com/v2/translate';
-const authKey = '971070b2-2a37-488c-942d-36414b3c5672'; // Replace with your actual API key
+const authKey = '8c1e0923-30de-457d-a753-787850910054'; // Replace with your actual API key
 
 const data = {
   text: ['Hello, world!'],
@@ -11,7 +11,7 @@ const data = {
 axios.post(url, data, {
   headers: {
     'Authorization': `DeepL-Auth-Key ${authKey}`,
-    'User-Agent': 'YourApp/1.2.3',
+    'User-Agent': 'bb@vitaoncompany.com',
     'Content-Type': 'application/json'
   }
 })

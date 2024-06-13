@@ -26,7 +26,9 @@ const Products = () => {
     isLoading: isLoadingCount,
     isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: `/api/products?shop=dimitar-shop-app-test.myshopify.com?=cursor=?=${currentPage}&limit=${productsPerPage}`,
+    url: `/api/products/count`,
+    // url: `/api/products?=cursor=?=${currentPage}&limit=${productsPerPage}`,
+    // url: `/api/products?shop=dimitar-shop-app-test.myshopify.com?=cursor=?=${currentPage}&limit=${productsPerPage}`,
     reactQueryOptions: {
       onSuccess: (data) => {
         setIsLoading(false);
@@ -123,11 +125,6 @@ const Products = () => {
             hasPrevious: true,
             hasNext: true,
           }}
-          // style={{backgroundColor: 'red'}}
-          // className="p-0"
-          // className={styles.test}
-          // className="test"
-          // className="!p-0"
         >
           <LegacyCard>
             <DataTable
