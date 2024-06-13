@@ -60,7 +60,6 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 app.use(express.json());
 
 app.get("/api/products/count", async (_req, res) => {
-
   const products = await getAllProducts(res.locals.shopify.session);
 
   res.status(200).send(products);
@@ -106,7 +105,7 @@ app.post("/api/generateToc", async (_req, res) => {
 
   try {
     await productHtmlDescriptionFormatter(res.locals.shopify.session);
-    console.log('kur')
+    console.log("kur");
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -134,7 +133,7 @@ app.post("/api/importImages", async (_req, res) => {
   let error = null;
 
   try {
-    await importImages(res.locals.shopify.session)
+    await importImages(res.locals.shopify.session);
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -189,14 +188,18 @@ app.post("/api/products/readMetafields", async (_req, res) => {
   let status = 200;
   let error = null;
 
+  console.log(_req.body.content);
+
   try {
-    await readProductsMetafields(res.locals.shopify.session);
+    await readProductsMetafields(res.locals.shopify.session, _req.body.content);
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
     error = e.message;
   }
-  res.status(status).send({ success: status === 200, error });
+  res
+    .status(status)
+    .send({ success: status === 200, result: _req.body.content, error });
 });
 
 app.post("/api/products/writeCollections", async (_req, res) => {

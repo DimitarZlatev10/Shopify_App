@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
-import { VerticalStack, Text, CalloutCard } from "@shopify/polaris";
+import { useState, useEffect, useCallback } from "react";
+import { VerticalStack, Text, CalloutCard, LegacyStack, Thumbnail } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
+import Dropzone from "./Dropzone.jsx";
+
+// import axios from "axios";
+
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };
@@ -413,6 +417,7 @@ export function ProductsCard() {
           <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
         </VerticalStack>
       </CalloutCard>
+
       <CalloutCard
         title={t("Collections.title")}
         primaryAction={{
@@ -457,6 +462,10 @@ export function ProductsCard() {
           </p>
         </VerticalStack>
       </CalloutCard>
+
+
+      <Dropzone />
+
     </>
   );
 }
