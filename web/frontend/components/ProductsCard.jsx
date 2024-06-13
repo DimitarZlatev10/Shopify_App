@@ -328,7 +328,128 @@ export function ProductsCard() {
           </Text>
         </VerticalStack>
       </CalloutCard>
-      {/* <CalloutCard
+      
+      {/* ------------------------- */}
+      {/* write Products Metafields */}
+      {/* ------------------------- */}
+
+      <CalloutCard
+        title={t("Metafields.title")}
+        primaryAction={{
+          content: t("Metafields.writeMetafields", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeProductsMetafields,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Metafields.readMetafields", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readProductsMetafields,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
+        </VerticalStack>
+      </CalloutCard>
+
+
+      {/* ------------------------- */}
+      {/* write Collections Metafields */}
+      {/* ------------------------- */}
+
+      <CalloutCard
+        title={t("CollectionsMetafields.title")}
+        primaryAction={{
+          content: t("CollectionsMetafields.writeCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeCollectionsMetafields,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("CollectionsMetafields.readCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readCollectionsMetafields,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>
+            {t("CollectionsMetafields.description")}
+          </p>
+        </VerticalStack>
+      </CalloutCard>
+
+
+      {/* ------------------------- */}
+      {/*       write Products      */}
+      {/* ------------------------- */}
+
+      <CalloutCard
+        title={t("Products.title")}
+        primaryAction={{
+          content: t("Products.writeProducts", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeProducts,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Products.readProducts", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readProducts,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Products.description")}</p>
+        </VerticalStack>
+      </CalloutCard>
+
+      {/* ------------------------- */}
+      {/*     write Collections     */}
+      {/* ------------------------- */}
+
+      <CalloutCard
+        title={t("Collections.title")}
+        primaryAction={{
+          content: t("Collections.writeCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeCollections,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Collections.readCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readCollections,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Collections.description")}</p>
+        </VerticalStack>
+      </CalloutCard>
+
+
+      {/* ------------------------- */}
+      {/*          Dropzone         */}
+      {/* ------------------------- */}
+
+      <Dropzone />
+
+      <LayoutExample />
+
+    </>
+  );
+}
+ {/* <CalloutCard
         title={t("Toc.title")}
         primaryAction={{
           content: t("Toc.generateToc", {
@@ -375,97 +496,3 @@ export function ProductsCard() {
           <p style={{ marginBottom: "15px" }}>{t("Images.description")}</p>
         </VerticalStack>
       </CalloutCard> */}
-      <CalloutCard
-        title={t("Products.title")}
-        primaryAction={{
-          content: t("Products.writeProducts", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: writeProducts,
-          loading: isLoading,
-        }}
-        secondaryAction={{
-          content: t("Products.readProducts", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: readProducts,
-          loading: isLoading,
-        }}
-      >
-        <VerticalStack spacing="loose">
-          <p style={{ marginBottom: "15px" }}>{t("Products.description")}</p>
-        </VerticalStack>
-      </CalloutCard>
-      <CalloutCard
-        title={t("Metafields.title")}
-        primaryAction={{
-          content: t("Metafields.writeMetafields", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: writeProductsMetafields,
-          loading: isLoading,
-        }}
-        secondaryAction={{
-          content: t("Metafields.readMetafields", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: readProductsMetafields,
-          loading: isLoading,
-        }}
-      >
-        <VerticalStack spacing="loose">
-          <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
-        </VerticalStack>
-      </CalloutCard>
-
-      <CalloutCard
-        title={t("Collections.title")}
-        primaryAction={{
-          content: t("Collections.writeCollections", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: writeCollections,
-          loading: isLoading,
-        }}
-        secondaryAction={{
-          content: t("Collections.readCollections", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: readCollections,
-          loading: isLoading,
-        }}
-      >
-        <VerticalStack spacing="loose">
-          <p style={{ marginBottom: "15px" }}>{t("Collections.description")}</p>
-        </VerticalStack>
-      </CalloutCard>
-      <CalloutCard
-        title={t("CollectionsMetafields.title")}
-        primaryAction={{
-          content: t("CollectionsMetafields.writeCollections", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: writeCollectionsMetafields,
-          loading: isLoading,
-        }}
-        secondaryAction={{
-          content: t("CollectionsMetafields.readCollections", {
-            count: productsWithoutToc?.length,
-          }),
-          onAction: readCollectionsMetafields,
-          loading: isLoading,
-        }}
-      >
-        <VerticalStack spacing="loose">
-          <p style={{ marginBottom: "15px" }}>
-            {t("CollectionsMetafields.description")}
-          </p>
-        </VerticalStack>
-      </CalloutCard>
-
-
-      <Dropzone />
-
-    </>
-  );
-}

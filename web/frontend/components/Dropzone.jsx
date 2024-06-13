@@ -54,24 +54,28 @@ function Dropzone() {
   const handleWrite = async () => {
     try {
       for (const file of acceptedFiles) {
-      // Check if the uploaded file is a text file
+        // Check if the uploaded file is a text file
         if (file.type === 'text/plain') {
           try {
             // Read the file content
-            const fileContent = await writeToFile(content);
-
-            // Write to file
+            const fileContent = await readFromFile(file);
+  
+            // Send the file content to the server
+            const response = await fetch('/api/products/readMetafields', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ content: fileContent }),
+            });
+  
             if (response.ok) {
-              setToastProps({
-                content: t("Dropzone.successWriteMessage"),
-                error: false,
-              });
+              console.log('File content uploaded successfully.');
               // Do something after successful upload if needed
             } else {
               console.error('Failed to upload file content:', response.statusText);
               // Handle failed upload
             }
-
           } catch (error) {
             console.error('Error reading file:', error);
             // Handle error reading file
@@ -79,24 +83,6 @@ function Dropzone() {
         } else {
           console.error('Uploaded file is not a text file.');
           // Handle error for unsupported file type
-        }
-
-        const response = await fetch('/api/products/readMetafields', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ content: fileContent }),
-        });
-        if (response.ok) {
-          setToastProps({
-            content: t("Dropzone.successReadMessage"),
-            error: false,
-          });
-          // Do something after successful upload if needed
-        } else {
-          console.error('Failed to upload file content:', response.statusText);
-          // Handle failed upload
         }
       }
     } catch(error) {
@@ -107,6 +93,7 @@ function Dropzone() {
   return (
     <div>
       {toastMarkup}
+      <div style={{marginTop: "15px"}} ></div>
       <DropZone onDrop={(files, acceptedFiles, _rejectedFiles) => handleConfirmationModal(files, acceptedFiles, _rejectedFiles)}>
         {files.length > 0 && (
           <div style={{ padding: '0' }}>
@@ -133,7 +120,7 @@ function Dropzone() {
         {!files.length && <DropZone.FileUpload />}
       </DropZone>
       <br/>
-      <Button primary fullWidth size="large" onClick={handleWrite}>Write</Button>
+      <Button  size="large" onClick={handleWrite}>Write</Button>
       {isOpen && (
         <ConfirmationModal
           isOpen={isOpen}
