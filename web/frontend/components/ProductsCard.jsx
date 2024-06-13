@@ -8,6 +8,7 @@ import Dropzone from "./Dropzone.jsx";
 
 // import axios from "axios";
 
+
 export function ProductsCard() {
   const emptyToastProps = { content: null };
   const [isLoading, setIsLoading] = useState(true);
@@ -208,6 +209,94 @@ export function ProductsCard() {
     }
   };
 
+  const writeCollections = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/products/writeCollections", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const readCollections = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/products/readCollections", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const writeCollectionsMetafields = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/collections/writeMetafields", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
+  const readCollectionsMetafields = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/collections/readMetafields", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
   return (
     <>
       {toastMarkup}
@@ -329,7 +418,54 @@ export function ProductsCard() {
         </VerticalStack>
       </CalloutCard>
 
+      <CalloutCard
+        title={t("Collections.title")}
+        primaryAction={{
+          content: t("Collections.writeCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeCollections,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("Collections.readCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readCollections,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>{t("Collections.description")}</p>
+        </VerticalStack>
+      </CalloutCard>
+      <CalloutCard
+        title={t("CollectionsMetafields.title")}
+        primaryAction={{
+          content: t("CollectionsMetafields.writeCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: writeCollectionsMetafields,
+          loading: isLoading,
+        }}
+        secondaryAction={{
+          content: t("CollectionsMetafields.readCollections", {
+            count: productsWithoutToc?.length,
+          }),
+          onAction: readCollectionsMetafields,
+          loading: isLoading,
+        }}
+      >
+        <VerticalStack spacing="loose">
+          <p style={{ marginBottom: "15px" }}>
+            {t("CollectionsMetafields.description")}
+          </p>
+        </VerticalStack>
+      </CalloutCard>
+
+
       <Dropzone />
+
     </>
   );
 }

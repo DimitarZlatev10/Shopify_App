@@ -61,6 +61,18 @@
     "writeMetafields": "Write Metafields",
     "readMetafields": "Read Metafields"
   },
+
+  "Collections": {
+    "title": "Write All Collections",
+    "description": "Write All Collections",
+    "writeCollections": "Write Collections",
+    "readCollections": "Read Collections"
+  },
+  "CollectionsMetafields": {
+    "title": "Write All Collections Metafields",
+    "description": "Write All Collections Metafields",
+    "writeCollections": "Write Collections Metafields",
+    "readCollections": "Read Collections Metafields"
   "Dropzone": {
     "successReadMessage": "File content read successfully",
     "successWriteMessage": "File content wrote successfully"

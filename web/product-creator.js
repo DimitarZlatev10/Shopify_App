@@ -71,14 +71,36 @@ const NOUNS = [
   "fire",
   "flower",
 ];
-const CREATE_PRODUCTS_MUTATION = `
-  mutation populateProduct($input: ProductInput!) {
-    productCreate(input: $input) {
-      product {
-        id
+const CREATE_PRODUCT_MUTATION = `
+mutation createProduct($title: String,
+  $descriptionHtml : String,
+  $metafields: [MetafieldInput!],
+  $media : [CreateMediaInput!]
+) {
+  productCreate(input :{
+    title: $title,
+    descriptionHtml : $descriptionHtml,
+    metafields : $metafields,
+  },
+    media: $media
+ ) {
+  userErrors {
+    field
+    message
+  }
+    product{
+      title
+      metafields(first:250){
+        edges{
+          node{
+            key
+            value
+          }
+        }
       }
     }
   }
+}
 `;
 const GET_ALL_PRODUCTS_QUERY = `
 query shopInfo {
@@ -295,9 +317,123 @@ mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
   }
 }`;
 
+const WRITE_COLLECTIONS_QUERY = `
+query {
+  collections(first: 250) {
+    edges {
+      node {
+        title
+        handle
+        sortOrder
+        descriptionHtml
+        metafieldDefinitions(first:250) {
+          edges {
+            node {
+              name
+              namespace
+              description
+              key
+              ownerType   
+            }
+          }
+        } 
+        image {
+          altText
+          url
+        }
+        metafields(first:250) {
+          edges {
+            node {
+            key
+            value
+            namespace
+            }
+          }
+        }
+        products(first:250) {
+          edges {
+            node {
+              title
+              handle  
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`;
+const READ_COLLECTIONS_MUTATION = `
+mutation CollectionCreate($input: CollectionInput!) {
+  collectionCreate(input: $input) {
+    userErrors {
+      field
+      message
+    }
+    collection {
+      id
+      title
+      descriptionHtml
+      handle
+      sortOrder
+    metafieldDefinitions(first:250) {
+  edges {
+    node {
+      key
+      namespace
+      description
+      metafields(first:250) {
+        edges {
+          node {
+            value
+            key
+            namespace
+          }
+        }
+      }
+    }
+  }
+}
+    }
+  }
+}
+`
+const WRITE_COLLECTIONS_METAFIELD_QUERY = `
+{
+  metafieldDefinitions(ownerType:COLLECTION, first:250) {
+    edges {
+      node {
+        description
+        key
+        namespace
+        name
+        type{
+          name
+        }  
+        ownerType
+      }
+    }
+  }
+}
+`
+const READ_COlLECTIONS_METAFIELDS_MUTATION = `
+mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+  metafieldDefinitionCreate(definition: $definition) {
+    createdDefinition {
+      id
+      name
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}
+`
+
 export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   const client = new shopify.api.clients.Graphql({ session });
-  // 1.the html string
 
   //prime workout
   const htmlString = `<div class="prose prose-2xl text-black mx-auto mt-8 px-8 prose-img:rounded-xl">
@@ -595,6 +731,7 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
 
 
   </div>`;
+
 
   //melatonin spray
   // const htmlString = `<div class="prose prose-2xl text-black mx-auto mt-8 px-8 prose-img:rounded-xl">
@@ -967,19 +1104,37 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   // </div>`
 
   try {
-    for (let i = 0; i < count; i++) {
-      await client.query({
-        data: {
-          query: CREATE_PRODUCTS_MUTATION,
-          variables: {
-            input: {
-              title: `${randomTitle()}`,
-              descriptionHtml: htmlString,
+    const res = await client.query({
+      data: {
+        query: CREATE_PRODUCT_MUTATION,
+        variables: {
+          title: `${randomTitle()}`,
+          descriptionHtml: htmlString,
+          metafields: [
+            {
+              key: "toc",
+              namespace: "custom",
+              value: "no toc",
             },
-          },
+            {
+              key: "cars",
+              namespace: "vehicle",
+              value: "carsss!",
+            },
+          ],
+          media: [
+            {
+              alt: "kurtest",
+              mediaContentType: "IMAGE",
+              originalSource:
+                "https://vitaon.bg/cdn/shop/files/prime-workout.webp?v=1702302790&amp;width=480",
+            },
+          ],
         },
-      });
-    }
+      },
+    });
+
+    console.log(res.body.data.productCreate.product.metafields.edges);
   } catch (error) {
     if (error instanceof GraphqlQueryError) {
       throw new Error(
@@ -1049,8 +1204,12 @@ export async function productHtmlDescriptionFormatter(session) {
         // Check for user errors in the response
         if (response.body.data.productUpdate.userErrors.length > 0) {
           throw new Error(
+
+            `Failed to update product ${product.id
+
             `Failed to update product ${
               product.id
+
             }: ${response.body.data.productUpdate.userErrors
               .map((error) => error.message)
               .join(", ")}`
@@ -1079,7 +1238,6 @@ export async function generateTocForSingleProduct(
   const toc = createToc(productDescription);
   const generateProductDescription =
     createProductDescription(productDescription);
-
   try {
     const response = await client.query({
       data: {
@@ -1129,8 +1287,9 @@ export async function getAllProducts(session) {
 
     products.forEach((product) => {
       if (
-        !product.node.metafields.edges.some(
-          (metafield) => metafield.node.value != ""
+        product.node.metafields.edges.some(
+          (metafield) =>
+            metafield.node.key == "toc" && metafield.node.value == "no toc"
         )
       ) {
         allProducts.push({
@@ -1251,6 +1410,7 @@ export async function importImages(session) {
 
   const imageUrls = await readFromFile("/home/dimitar/kur.txt");
 
+
   try {
     await client.query({
       data: {
@@ -1306,7 +1466,7 @@ export async function writeProducts(session) {
   });
 
   try {
-    await writeToFile(productsInfo, "/home/dimitar/products.txt");
+    await writeToFile(productsInfo, "/home/dimitar/Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
@@ -1316,7 +1476,7 @@ export async function writeProducts(session) {
 export async function readProducts(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
-  const productsInfo = await readFromFile("/home/santiya/products.txt");
+  const productsInfo = await readFromFile("/home/dimitar/Products.txt");
 
   productsInfo.forEach(async (product) => {
     try {
@@ -1362,20 +1522,19 @@ export async function writeProductsMetafields(session) {
   });
 
   try {
-    await writeToFile(
-      productsMetafields,
-      "/home/santiya/productsMetafields.txt"
-    );
+    await writeToFile(productsMetafields, "/home/dimitar/Metafield_Definitions-Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
   }
 }
 
-export async function readProductsMetafields(session, metafields) {
+export async function readProductsMetafields(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
-  metafields.forEach(async (metafield) => {
+  const productsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Products.txt");
+
+  productsMetafields.forEach(async (metafield) => {
     try {
       await client.query({
         data: {
@@ -1396,6 +1555,321 @@ export async function readProductsMetafields(session, metafields) {
       console.log("error creating product metafield", error);
     }
   });
+}
+
+export async function writeCollections(session) {
+
+
+  try {
+    await client.query({
+      data: {
+        query: CREATE_FILE_MUTATION,
+        variables: {
+          files: imageUrls,
+        },
+      },
+    });
+  } catch (error) {
+    console.log("error creating file", error);
+  }
+}
+
+export async function writeProducts(session) {
+
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const response = await client.query({
+    data: {
+      query: WRITE_COLLECTIONS_QUERY,
+    },
+  });
+
+
+  const collections = response.body.data.collections.edges;
+
+  const allCollections = [];
+
+  collections.forEach((collection) => {
+    const metafieldDefinitions = []
+    const productsAddedToCollection = []
+    collection.node.products.edges.forEach((product) => {
+      productsAddedToCollection.push({
+        title: product.node.title,
+        handle: product.node.handle
+      })
+    })
+    collection.node.metafields.edges.forEach((metafield) => {
+      metafieldDefinitions.push({
+        key: metafield.node.key,
+        namespace: metafield.node.namespace,
+        value: metafield.node.value
+      })
+    })
+    allCollections.push({
+      title: collection.node.title,
+      handle: collection.node.handle,
+      sortOrder: collection.node.sortOrder,
+      descriptionHtml: collection.node.descriptionHtml,
+      image: {
+        altText: collection.node.image.altText,
+        src: collection.node.image.url
+      },
+      metafields: metafieldDefinitions,
+      collectionProducts: productsAddedToCollection
+    });
+  });
+
+  console.log(allCollections);
+
+  try {
+    await writeToFile(allCollections, "/home/dimitar/Collections.txt");
+    console.log("Collections writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write collections:", error);
+  }
+}
+
+export async function readCollections(session) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const GET_PRODUCT_BY_HANDLE = `query getProductIdFromHandle($handle: String!) {
+    productByHandle(handle: $handle) {
+      id
+    }
+  }`
+
+  const ADD_PRODUCTS_TO_COLLECTION = `mutation collectionAddProducts($id: ID!, $productIds: [ID!]!) {
+    collectionAddProducts(id: $id, productIds: $productIds) {
+      collection {
+        id
+        title
+        products(first: 10) {
+          nodes {
+            id
+            title
+          }
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }`
+
+  const collections = await readFromFile("/home/dimitar/Collections.txt");
+
+  const testImage = {
+    altText: 'Testtt',
+    src: 'https://vitaon.bg/cdn/shop/files/prime-workout.webp?v=1702302790&amp;width=480'
+  }
+
+  const productsIdsForCurrentCollection = []
+  let collectionId = ''
+
+  collections.forEach(async (collection) => {
+    //1.get the products id from their handle
+    for (const product of collection.collectionProducts) {
+      try {
+        const response = await client.query({
+          data: {
+            query: GET_PRODUCT_BY_HANDLE,
+            variables: {
+              handle: product.handle
+            },
+          },
+        });
+        productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
+        console.log('product id pushed successfully');
+      } catch (error) {
+        console.log("failed pushing product id", error);
+      }
+    }
+    //2.create the collection and get its id
+    try {
+      const res = await client.query({
+        data: {
+          query: READ_COLLECTIONS_MUTATION,
+          variables: {
+            input: {
+              title: collection.title,
+              descriptionHtml: collection.descriptionHtml,
+              // image : collection.image,
+              image: testImage,
+              metafields: collection.metafields
+            }
+          },
+        },
+      });
+      collectionId = res.body.data.collectionCreate.collection.id
+      console.log('collection created successfully');
+    } catch (error) {
+      console.log("error creating file", error);
+    }
+    //3.add the products to the collection
+  const productsInfo = [];
+
+  response.body.data.products.edges.forEach((product) => {
+    const title = product.node.title;
+    const descriptionHtml = product.node.descriptionHtml;
+    const metafields = [];
+    product.node.metafields.edges.forEach((metafield) => {
+      metafields.push({
+        key: metafield.node.key,
+        namespace: metafield.node.namespace,
+        value: metafield.node.value,
+      });
+    });
+    const images = [];
+    product.node.images.edges.forEach((image) => {
+      console.log(image.node.url);
+      images.push({
+        originalSource: image.node.url,
+        alt: image.node.altText,
+        mediaContentType: "IMAGE",
+      });
+    });
+
+    productsInfo.push({
+      title: title,
+      descriptionHtml: descriptionHtml,
+      metafields: metafields,
+      images: images,
+    });
+  });
+
+  try {
+    await writeToFile(productsInfo, "/home/dimitar/products.txt");
+    console.log("Products writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write products:", error);
+  }
+}
+
+export async function readProducts(session) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const productsInfo = await readFromFile("/home/santiya/products.txt");
+
+  productsInfo.forEach(async (product) => {
+    try {
+      await client.query({
+        data: {
+          query: ADD_PRODUCTS_TO_COLLECTION,
+          variables: {
+            id: collectionId,
+            productIds: productsIdsForCurrentCollection
+            title: product.title,
+            descriptionHtml: product.descriptionHtml,
+            metafields: product.metafields,
+            media: product.images,
+          },
+        },
+      });
+      console.log('products added to collection successfully');
+    } catch (error) {
+      console.log("failed to add products to collection", error);
+    }
+  })
+}
+
+export async function writeCollectionsMetafields(session) {
+      console.log("error creating file", error);
+    }
+  });
+}
+
+export async function writeProductsMetafields(session) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const response = await client.query({
+    data: {
+      query: WRITE_COLLECTIONS_METAFIELD_QUERY,
+    },
+  });
+
+
+  const allCollectionsMetafields = []
+
+  response.body.data.metafieldDefinitions.edges.forEach((metafield) => {
+    allCollectionsMetafields.push({
+      name: metafield.node.name,
+      namespace: metafield.node.namespace,
+      key: metafield.node.key,
+      description: metafield.node.description,
+      type: metafield.node.type.name,
+      ownerType: metafield.node.ownerType
+    })
+  })
+
+  try {
+    await writeToFile(allCollectionsMetafields, "/home/dimitar/Metafield_Definitions-Collections.txt");
+    console.log("Collections writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write collections:", error);
+  }
+}
+
+export async function readCollectionsMetafields(session) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
+
+  collectionsMetafields.forEach(async (metafield) => {
+
+  const metafields = response.body.data.metafieldDefinitions.edges;
+
+  const productsMetafields = [];
+
+  metafields.forEach((metafield) => {
+    productsMetafields.push({
+      description: metafield.node.description,
+      key: metafield.node.key,
+      namespace: metafield.node.namespace,
+      name: metafield.node.name,
+      type: metafield.node.type.name,
+      ownerType: metafield.node.ownerType,
+    });
+  });
+
+  try {
+    await writeToFile(
+      productsMetafields,
+      "/home/santiya/productsMetafields.txt"
+    );
+    console.log("Products writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write products:", error);
+  }
+}
+
+export async function readProductsMetafields(session, metafields) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  metafields.forEach(async (metafield) => {
+    try {
+      await client.query({
+        data: {
+          query: READ_COlLECTIONS_METAFIELDS_MUTATION,
+          variables: {
+            definition: {
+              name: metafield.name,
+              namespace: metafield.namespace,
+              key: metafield.key,
+              description: metafield.description,
+              type: metafield.type,
+              ownerType: metafield.ownerType,
+            },
+          },
+        },
+      });
+      console.log('collection metafield created successfully!');
+    } catch (error) {
+      console.log("error creating product metafield", error);
+    }
+  });
+
+}
 
   // const productsMetafields = await readFromFile('/home/fabien/productsMetafields.txt')
 
