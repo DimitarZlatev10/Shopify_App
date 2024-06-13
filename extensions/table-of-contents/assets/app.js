@@ -170,10 +170,11 @@ window.onload = function () {
         lastScrollTop = scrollTop;
     });
 
-        var button = document.createElement("button");
+    var button = document.createElement("button");
 
         // Set the button's id to "tocButton"
         button.id = "tocButton";
+        button.innerText = "TOC"; // Add some text to the button
 
         // Append the button to the body of the document
         document.body.appendChild(button);
@@ -189,68 +190,148 @@ window.onload = function () {
             }
         });
 
-    let lastScrollTop2 = 0;
+        var isDragging = false;
+        var startY;
+        var startTopOffset;
 
-    document.addEventListener('scroll', function() {
-        const toc = document.querySelector('.mobile-toc.open');
-        const footer = document.querySelector('.footer');
-        const viewportHeight = window.innerHeight;
+// Function to check if the device is mobile
+function isMobile() {
+    return window.innerWidth <= 768;
+}
 
-        const footerRect = footer.getBoundingClientRect();
-        const scrollTop = window.scrollY;
+// Handle dragging
+var button = document.getElementById('tocButton'); // Assuming 'tocButton' is the ID of your TOC button
+button.addEventListener("mousedown", function(e) {
+    if (isMobile()) {
+        isDragging = true;
+        startY = e.clientY;
+        startTopOffset = button.offsetTop;
+        document.body.style.cursor = 'grabbing';
+        e.preventDefault();
+    }
+});
 
-        if (toc) { // Ensure toc is defined before manipulating classes
-            if (footerRect.top <= viewportHeight + 400) { 
-                toc.classList.add('sticky');
-                toc.classList.remove('scrolling');
-            } else {
-                toc.classList.remove('sticky');
-                toc.classList.add('scrolling');
-            }
+document.addEventListener("mouseup", function() {
+    if (isMobile()) {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+    }
+});
 
-            if (scrollTop < lastScrollTop2) {
-                toc.classList.add('top-page');
-            } else {
-                toc.classList.remove('top-page');
-            }
+document.addEventListener("mousemove", function(e) {
+    if (isMobile() && isDragging) {
+        var newY = startTopOffset + (e.clientY - startY);
+        button.style.top = newY + "px";
+        
+        // Scroll the TOC based on the button's position
+        var toc = document.querySelector(".mobile-toc");
+        if (toc) {
+            var buttonHeight = button.offsetHeight;
+            var tocHeight = toc.offsetHeight;
+            var scrollHeight = toc.scrollHeight;
+            var scrollTop = (newY / (tocHeight - buttonHeight)) * (scrollHeight - tocHeight);
+            toc.scrollTop = scrollTop;
 
-            if (scrollTop === 0) {
-                toc.classList.add('top-top');
-            } else {
-                toc.classList.remove('top-top');
-            }
+            // Find the corresponding section and scroll to it
+            var tocLinks = toc.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                var sectionId = link.getAttribute('href');
+                var section = document.querySelector(sectionId);
+                if (section) {
+                    var sectionTop = section.offsetTop;
+                    var sectionBottom = sectionTop + section.offsetHeight;
+                    if (newY >= sectionTop && newY <= sectionBottom) {
+                        // Smooth scroll to the section
+                        smoothScrollToSection(sectionId);
+                    }
+                }
+            });
         }
+    }
+});
 
+// Function to handle smooth scrolling to a section and update URL
+function smoothScrollToSection(targetId) {
+    document.querySelector(targetId).scrollIntoView({
+        behavior: 'smooth'
+    });
+
+    // Update URL based on the targetId
+    history.pushState(null, '', targetId);
+}
+
+
+        let lastScrollTop2 = 0;
+
+document.addEventListener('scroll', function() {
+    const toc = document.querySelector('.mobile-toc.open');
+    const footer = document.querySelector('.footer');
+    const viewportHeight = window.innerHeight;
+
+    const footerRect = footer.getBoundingClientRect();
+    const scrollTop = window.scrollY;
+
+    if (toc){
+                if (footerRect.top <= viewportHeight + 400) { 
+                    toc.classList.add('sticky');
+                    toc.classList.remove('scrolling');
+                } else {
+                    toc.classList.remove('sticky');
+                    toc.classList.add('scrolling');
+                }
+
+                if (scrollTop < lastScrollTop2) {
+                    toc.classList.add('top-page');
+                } else {
+                    toc.classList.remove('top-page');
+                }
+
+                if (scrollTop === 0) {
+                    toc.classList.add('top-top');
+                } else {
+                    toc.classList.remove('top-top');
+                }
+            }
         lastScrollTop2 = scrollTop;
     });
 
-        // Close TOC when clicking outside or after a certain inactivity period
-        const tocElement = document.querySelector('.mobile-toc');
-        const tocButton = document.querySelector('#tocButton');
-        let tocTimeout;
+    const tocElement = document.querySelector('.mobile-toc');
+    const tocButton = document.querySelector('#tocButton');
+    let tocTimeout;
 
-        document.addEventListener('click', function(event) {
-            const isInsideToc = tocElement.contains(event.target) || tocButton.contains(event.target);
+    document.addEventListener('click', function(event) {
+        const isInsideToc = tocElement.contains(event.target) || tocButton.contains(event.target);
 
-            if (!isInsideToc) {
-                tocElement.classList.remove('open');
-                resetTocTimeout();
-            } else {
-                resetTocTimeout();
-            }
-        });
-
-        // Reset the inactivity timeout when hovering, clicking or scrolling on the TOC
-        tocElement.addEventListener('mousemove', resetTocTimeout);
-        tocElement.addEventListener('click', resetTocTimeout);
-        tocElement.addEventListener('scroll', resetTocTimeout);
-
-        // Close the TOC after a period of inactivity
-        function resetTocTimeout() {
-            clearTimeout(tocTimeout);
-            tocTimeout = setTimeout(() => {
-                tocElement.classList.remove('open');
-            }, 3000); // Close TOC after 3 seconds of inactivity
+        if (!isInsideToc) {
+            tocElement.classList.remove('open');
+            resetTocTimeout();
+        } else {
+            resetTocTimeout();
         }
+    });
+
+    tocElement.addEventListener('mousemove', resetTocTimeout);
+    tocElement.addEventListener('click', resetTocTimeout);
+    tocElement.addEventListener('scroll', resetTocTimeout);
+
+    function resetTocTimeout() {
+        clearTimeout(tocTimeout);
+        tocTimeout = setTimeout(() => {
+            tocElement.classList.remove('open');
+        }, 3000);
+    }
+
+    // Function to handle smooth scrolling to a section
+
+    tocElement.addEventListener('click', function(event) {
+        const targetId = event.target.getAttribute('href');
+
+        if (targetId) {
+            event.preventDefault();
+            smoothScrollToSection(targetId);
+            tocElement.classList.remove('open');
+        }
+        resetTocTimeout();
+    });
 
 };

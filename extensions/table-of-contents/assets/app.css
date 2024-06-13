@@ -163,7 +163,7 @@
       height: 100%;
       background: linear-gradient(to left, rgb(33, 167, 119), rgba(0, 0, 0, 0.8));
       box-shadow: 2px 2px 5px rgba(1,0,0,0);
-      z-index: 2;
+      z-index: 999;
       list-style: none;
       width: 80%;
       transform: translateX(100%);
@@ -186,31 +186,12 @@
     transition: transform 0.4s ease-in-out;
   }
 
-  .mobile-toc.scrolling.top-page {
-    top: 5em;
-  }
-
-  .mobile-toc.scrolling.top-page.open {
-    top: 5em;
-  }
-
-  .mobile-toc.open.scrolling.top-page {
-    top: 5em;
-  }
-
-  .mobile-toc.scrolling.open {
-    top: 0em;
-  }
-
-  .mobile-toc.open.scrolling.top-page.top-top {
-    top: 7em;
+  .mobile-toc.open {
+    transform: translateX(0);
+    z-index: 4;
   }
 
   .mobile-toc.scrolling.top-page.top-top {
-    top: 7em;
-  }
-
-  .mobile-toc.open {
-    transform: translateX(0);
+    z-index: 4;
   }
 }
