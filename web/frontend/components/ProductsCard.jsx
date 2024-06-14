@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import { VerticalStack, Text, CalloutCard, LegacyStack, Thumbnail } from "@shopify/polaris";
+import {
+  VerticalStack,
+  Text,
+  CalloutCard,
+  LegacyStack,
+  Thumbnail,
+  Button,
+} from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 import { DEFAULT_PRODUCTS_COUNT } from "../../constants.js";
 import Dropzone from "./Dropzone.jsx";
-
-// import axios from "axios";
-
 
 export function ProductsCard() {
   const emptyToastProps = { content: null };
@@ -233,7 +237,7 @@ export function ProductsCard() {
 
   const readCollections = async () => {
     setIsLoading(true);
-    const response = await fetch("/api/products/readCollections", {
+    const response = await fetch("/api/readCollections", {
       method: "POST",
     });
 
@@ -297,6 +301,28 @@ export function ProductsCard() {
     }
   };
 
+  const translate = async () => {
+    setIsLoading(true);
+    const response = await fetch("/api/translate", {
+      method: "POST",
+    });
+
+    if (response.ok) {
+      await refetchProductCount();
+      setToastProps({
+        content: t("Toc.tocGenerated", {
+          count: productsWithoutToc?.length,
+        }),
+      });
+    } else {
+      setIsLoading(false);
+      setToastProps({
+        content: t("ProductsCard.errorCreatingProductsToast"),
+        error: true,
+      });
+    }
+  };
+
   return (
     <>
       {toastMarkup}
@@ -311,9 +337,9 @@ export function ProductsCard() {
         }}
       >
         <VerticalStack spacing="loose">
-          <p style={{ marginBottom: "15px" }}>
+          {/* <p style={{ marginBottom: "15px" }}>
             {t("ProductsCard.description")}
-          </p>
+          </p> */}
 
           <Text as="h4" variant="headingMd">
             {t("ProductsCard.totalProductsHeading")}
@@ -328,7 +354,6 @@ export function ProductsCard() {
           </Text>
         </VerticalStack>
       </CalloutCard>
-      
       {/* ------------------------- */}
       {/* write Products Metafields */}
       {/* ------------------------- */}
@@ -354,7 +379,6 @@ export function ProductsCard() {
           <p style={{ marginBottom: "15px" }}>{t("Metafields.description")}</p>
         </VerticalStack>
       </CalloutCard>
-
 
       {/* ------------------------- */}
       {/* write Collections Metafields */}
@@ -383,7 +407,6 @@ export function ProductsCard() {
           </p>
         </VerticalStack>
       </CalloutCard>
-
 
       {/* ------------------------- */}
       {/*       write Products      */}
@@ -437,18 +460,40 @@ export function ProductsCard() {
         </VerticalStack>
       </CalloutCard>
 
-
       {/* ------------------------- */}
       {/*          Dropzone         */}
       {/* ------------------------- */}
 
       <Dropzone />
 
-
+      <CalloutCard
+        title="Translate Products"
+        primaryAction={{
+          content: t("Translate Products", {
+            count: productsWithoutToc?.length,
+          }),
+          // onAction: writeCollections,
+          loading: isLoading,
+        }}
+      >
+        <div style={{ marginTop: "15px" }}>
+          <Button
+            style={{ marginRight: "10px" }}
+            size="large"
+            onClick={translate}
+          >
+            Translate to English
+          </Button>
+          <Button size="large" onClick={readProductsMetafields}>
+            Translate to Slovenian
+          </Button>
+        </div>
+      </CalloutCard>
     </>
   );
 }
- {/* <CalloutCard
+{
+  /* <CalloutCard
         title={t("Toc.title")}
         primaryAction={{
           content: t("Toc.generateToc", {
@@ -473,8 +518,10 @@ export function ProductsCard() {
             </Text>
           </Text>
         </VerticalStack>
-      </CalloutCard> */}
-      {/* <CalloutCard
+      </CalloutCard> */
+}
+{
+  /* <CalloutCard
         title={t("Images.title")}
         primaryAction={{
           content: t("Images.downloadImages", {
@@ -494,4 +541,5 @@ export function ProductsCard() {
         <VerticalStack spacing="loose">
           <p style={{ marginBottom: "15px" }}>{t("Images.description")}</p>
         </VerticalStack>
-      </CalloutCard> */}
+      </CalloutCard> */
+}

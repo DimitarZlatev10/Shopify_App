@@ -1094,14 +1094,18 @@ export async function writeProducts(session) {
   }
 }
 
-export async function readProducts(session) {
+export async function readProducts(session, products) {
+
+  if (!Array.isArray(products)) {
+    console.error('Products is not an array:', products);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
-  const productsInfo = await readFromFile("/home/dimitar/Products.txt");
-
-  productsInfo.forEach(async (product) => {
+  for (const product of products) {
     try {
-      await client.query({
+      const response = await client.query({
         data: {
           query: READ_PRODUCTS_MUTATION,
           variables: {
@@ -1112,10 +1116,37 @@ export async function readProducts(session) {
           },
         },
       });
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Product ${product.title} created successfully.`);
+      }
     } catch (error) {
-      console.log("error creating file", error);
+      console.error('Error creating product:', error);
     }
-  });
+  }
+
+  // const client = new shopify.api.clients.Graphql({ session });
+
+  // const productsInfo = await readFromFile("/home/dimitar/Products.txt");
+
+  // productsInfo.forEach(async (product) => {
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: READ_PRODUCTS_MUTATION,
+  //         variables: {
+  //           title: product.title,
+  //           descriptionHtml: product.descriptionHtml,
+  //           metafields: product.metafields,
+  //           media: product.images,
+  //         },
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.log("error creating file", error);
+  //   }
+  // });
 }
 
 export async function writeProductsMetafields(session) {
@@ -1143,7 +1174,7 @@ export async function writeProductsMetafields(session) {
   });
 
   try {
-    await writeToFile(productsMetafields, "/home/fabien/Metafield_Definitions-Products.txt");
+    await writeToFile(productsMetafields, "/home/dimitar/Metafield_Definitions-Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
@@ -1151,18 +1182,15 @@ export async function writeProductsMetafields(session) {
 }
 
 export async function readProductsMetafields(session, metafields) {
-  // Ensure metafields is an array before proceeding
   if (!Array.isArray(metafields)) {
     console.error('Metafields is not an array:', metafields);
-    return; // Exit function early if metafields is not an array
+    return;
   }
 
   const client = new shopify.api.clients.Graphql({ session });
 
-  // Iterate over metafields array using for...of loop
   for (const metafield of metafields) {
     try {
-      // Perform GraphQL query to create product metafield
       const response = await client.query({
         data: {
           query: CREATE_PRODUCT_METAFIELD_MUTATION,
@@ -1180,18 +1208,15 @@ export async function readProductsMetafields(session, metafields) {
       });
 
       if (response.errors) {
-        // Handle GraphQL errors
         console.error('GraphQL Error:', response.errors);
       } else {
-        console.log(`Metafield ${metafield.name} created successfully.`);
+        console.log(`Product Metafield ${metafield.name} created successfully.`);
       }
     } catch (error) {
       console.error('Error creating product metafield:', error);
     }
   }
 }
-
-
 
 export async function writeCollections(session) {
   const client = new shopify.api.clients.Graphql({ session });
@@ -1246,7 +1271,13 @@ export async function writeCollections(session) {
   }
 }
 
-export async function readCollections(session) {
+export async function readCollections(session, collections) {
+
+  if (!Array.isArray(collections)) {
+    console.error('Collections is not an array:', collections);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
   const GET_PRODUCT_BY_HANDLE = `query getProductIdFromHandle($handle: String!) {
@@ -1273,8 +1304,8 @@ export async function readCollections(session) {
       }
     }
   }`
-  
-  const collections = await readFromFile("/home/dimitar/Collections.txt");
+
+  // const collections = await readFromFile("/home/dimitar/Collections.txt");
 
   const testImage = {
     altText: 'Testtt',
@@ -1297,7 +1328,7 @@ export async function readCollections(session) {
           },
         });
         productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
-        console.log('product id pushed successfully');
+        console.log(`product id ${response.body.data.productByHandle.id} pushed successfully`);
       } catch (error) {
         console.log("failed pushing product id", error);
       }
@@ -1319,7 +1350,7 @@ export async function readCollections(session) {
         },
       });
       collectionId = res.body.data.collectionCreate.collection.id
-      console.log('collection created successfully');
+      console.log(`collection with id: ${res.body.data.collectionCreate.collection.id} created successfully`);
     } catch (error) {
       console.log("error creating file", error);
     }
@@ -1339,6 +1370,63 @@ export async function readCollections(session) {
       console.log("failed to add products to collection", error);
     }
   })
+
+
+  // collections.forEach(async (collection) => {
+  //   //1.get the products id from their handle
+  //   for (const product of collection.collectionProducts) {
+  //     try {
+  //       const response = await client.query({
+  //         data: {
+  //           query: GET_PRODUCT_BY_HANDLE,
+  //           variables: {
+  //             handle: product.handle
+  //           },
+  //         },
+  //       });
+  //       productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
+  //       console.log('product id pushed successfully');
+  //     } catch (error) {
+  //       console.log("failed pushing product id", error);
+  //     }
+  //   }
+  //   //2.create the collection and get its id
+  //   try {
+  //     const res = await client.query({
+  //       data: {
+  //         query: READ_COLLECTIONS_MUTATION,
+  //         variables: {
+  //           input: {
+  //             title: collection.title,
+  //             descriptionHtml: collection.descriptionHtml,
+  //             // image : collection.image,
+  //             image: testImage,
+  //             metafields: collection.metafields
+  //           }
+  //         },
+  //       },
+  //     });
+  //     collectionId = res.body.data.collectionCreate.collection.id
+  //     console.log('collection created successfully');
+  //   } catch (error) {
+  //     console.log("error creating file", error);
+  //   }
+  //   //3.add the products to the collection
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: ADD_PRODUCTS_TO_COLLECTION,
+  //         variables: {
+  //           id: collectionId,
+  //           productIds: productsIdsForCurrentCollection
+  //         },
+  //       },
+  //     });
+  //     console.log('products added to collection successfully');
+  //   } catch (error) {
+  //     console.log("failed to add products to collection", error);
+  //   }
+  // })
 }
 
 export async function writeCollectionsMetafields(session) {
@@ -1371,14 +1459,18 @@ export async function writeCollectionsMetafields(session) {
   }
 }
 
-export async function readCollectionsMetafields(session) {
+export async function readCollectionsMetafields(session, metafields) {
+
+  if (!Array.isArray(metafields)) {
+    console.error('Metafields is not an array:', metafields);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
-  const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
-
-  collectionsMetafields.forEach(async (metafield) => {
+  for (const metafield of metafields) {
     try {
-      await client.query({
+      const response = await client.query({
         data: {
           query: READ_COlLECTIONS_METAFIELDS_MUTATION,
           variables: {
@@ -1393,11 +1485,42 @@ export async function readCollectionsMetafields(session) {
           },
         },
       });
-      console.log('collection metafield created successfully!');
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Collection Metafield ${metafield.name} created successfully.`);
+      }
     } catch (error) {
-      console.log("error creating product metafield", error);
+      console.error('Error creating collection metafield:', error);
     }
-  });
+  }
+
+  // const client = new shopify.api.clients.Graphql({ session });
+
+  // const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
+
+  // collectionsMetafields.forEach(async (metafield) => {
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: READ_COlLECTIONS_METAFIELDS_MUTATION,
+  //         variables: {
+  //           definition: {
+  //             name: metafield.name,
+  //             namespace: metafield.namespace,
+  //             key: metafield.key,
+  //             description: metafield.description,
+  //             type: metafield.type,
+  //             ownerType: metafield.ownerType,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     console.log('collection metafield created successfully!');
+  //   } catch (error) {
+  //     console.log("error creating product metafield", error);
+  //   }
+  // });
 }
 
 function randomTitle() {

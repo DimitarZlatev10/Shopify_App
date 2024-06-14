@@ -161,7 +161,7 @@ app.post("/api/readProducts", async (_req, res) => {
   let error = null;
 
   try {
-    await readProducts(res.locals.shopify.session);
+    await readProducts(res.locals.shopify.session , JSON.parse(_req.body.content));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -188,10 +188,8 @@ app.post("/api/products/readMetafields", async (_req, res) => {
   let status = 200;
   let error = null;
 
-  console.log(_req.body.content);
-
   try {
-    await readProductsMetafields(res.locals.shopify.session, _req.body.content);
+    await readProductsMetafields(res.locals.shopify.session, JSON.parse(_req.body.content));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -216,12 +214,12 @@ app.post("/api/products/writeCollections", async (_req, res) => {
   res.status(status).send({ success: status === 200, error });
 });
 
-app.post("/api/products/readCollections", async (_req, res) => {
+app.post("/api/readCollections", async (_req, res) => {
   let status = 200;
   let error = null;
 
   try {
-    await readCollections(res.locals.shopify.session);
+    await readCollections(res.locals.shopify.session , JSON.parse(_req.body.content));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -249,7 +247,7 @@ app.post("/api/collections/readMetafields", async (_req, res) => {
   let error = null;
 
   try {
-    await readCollectionsMetafields(res.locals.shopify.session);
+    await readCollectionsMetafields(res.locals.shopify.session, JSON.parse(_req.body.content));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;

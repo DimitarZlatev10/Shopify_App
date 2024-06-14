@@ -32,7 +32,7 @@
       "one": "{{count}} product created!",
       "other": "{{count}} products created!"
     },
-    "title": "Product Generator",
+    "title": "Generate 1 Test Product",
     "totalProductsHeading": "TOTAL PRODUCTS: "
   },
   "Toc": {
