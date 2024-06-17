@@ -11,6 +11,8 @@ import {
   productHtmlDescriptionFormatter,
   getAllProducts,
   generateTocForSingleProduct,
+  editProductToc,
+  getProductsPerPage,
   downloadImagesUrls,
   importImages,
   writeProducts,
@@ -65,15 +67,38 @@ app.get("/api/products/count", async (_req, res) => {
   res.status(200).send(products);
 });
 
+var products = [];
+app.get(
+  "/api/products?cursor=${currentPage}&limit=${productsPerPage}",
+  async (_req, res) => {
+    const currentPage = _req.query.page ?? 0;
+    const productsPerPage = _req.query.limit ?? 10;
+    console.log("products?.pageInfo", products?.pageInfo);
+    const cursor = products?.pageInfo?.endCursor;
+    // const cursor = products?.pageInfo?.endCursor ?? null;
+
+    products = await getProductsPerPage(
+      res.locals.shopify.session,
+      currentPage,
+      productsPerPage,
+      cursor,
+      products?.pageInfo
+    );
+
+    res.status(200).send(products);
+  }
+);
+
 app.post("/api/products", async (_req, res) => {
   let status = 200;
   let error = null;
 
-  console.log(res.locals.shopify.session);
-
   try {
     await productCreator(res.locals.shopify.session);
   } catch (e) {
+    console.log(
+      "HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 1"
+    );
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
     error = e.message;
@@ -85,13 +110,21 @@ app.post("/api/generateTocPerProduct", async (_req, res) => {
   let status = 200;
   let error = null;
 
+  console.log(" res.locals.shopify.session", res.locals.shopify.session);
+  console.log(" _req.body.gid", _req.body.gid);
+  console.log("_req.body.descriptionHtml", _req.body.descriptionHtml);
+
   try {
     await generateTocForSingleProduct(
       res.locals.shopify.session,
       _req.body.gid,
-      _req.body.descriptionHtml
+      _req.body.descriptionHtml,
+      _req.body.metafieldToc
     );
   } catch (e) {
+    console.log(
+      "HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 2"
+    );
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
     error = e.message;
@@ -107,6 +140,9 @@ app.post("/api/generateToc", async (_req, res) => {
     await productHtmlDescriptionFormatter(res.locals.shopify.session);
     console.log("kur");
   } catch (e) {
+    console.log(
+      "HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE 3"
+    );
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
     error = e.message;

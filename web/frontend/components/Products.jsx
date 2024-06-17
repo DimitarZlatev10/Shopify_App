@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Page, LegacyCard, DataTable, Link, Button } from "@shopify/polaris";
-import { PlusIcon } from "@shopify/polaris-icons";
-import { useAppQuery, useAuthenticatedFetch } from "../hooks";
-import { DEFAULT_PRODUCTS_COUNT } from "../../constants";
-// import './styles.css';
-// import styles from './Products.module.css';
-// import "@shopify/polaris/build/esm/styles.css" in index.js
+import React, { useEffect, useState } from 'react';
+import { Loading } from '@shopify/app-bridge-react';
+import { useTranslation } from 'react-i18next';
+import {Page, LegacyCard, DataTable, Link, Button} from '@shopify/polaris';
+import {PlusIcon} from '@shopify/polaris-icons';
+import { useAppQuery, useAuthenticatedFetch } from '../hooks';
+import { DEFAULT_PRODUCTS_COUNT } from '../../constants';
+
 import "../styles.css";
 
 const Products = () => {
@@ -16,6 +15,10 @@ const Products = () => {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
+  const [currentPage, setCurrentPage] = useState(null);
+  const productsPerPage = 10;
+  const [isPreviousClicked, setPreviousClicked] = useState(false);
+  const [isNextClicked, setNextClicked] = useState(false);
 
   const {
     data,
@@ -23,15 +26,40 @@ const Products = () => {
     isLoading: isLoadingCount,
     isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: "/api/products/count",
+    url: `/api/products/count`,
+    // url: `/api/products?=cursor=?=${currentPage}&limit=${productsPerPage}`,
+    // url: `/api/products?shop=dimitar-shop-app-test.myshopify.com?=cursor=?=${currentPage}&limit=${productsPerPage}`,
     reactQueryOptions: {
-      onSuccess: () => {
+      onSuccess: (data) => {
         setIsLoading(false);
       },
     },
   });
 
+  useEffect(() => {
+    if (isNextClicked || isPreviousClicked) {
+      setIsLoading(true);
+      // setCurrentPage(currentPage + 1);
+      async function fetchData() {
+        // if (data?.pageInfo?.hasNextPage) {
+          console.log('HERE', currentPage);
+          const response = await fetch(`/api/products?cursor=?=${currentPage}&limit=${productsPerPage}`, {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          // await refetchProducts();
+        // }
+        setIsLoading(false);
+      }
+      fetchData();
+    }
+  }, [isNextClicked, isPreviousClicked])
+
   const handleGenerateTOC = async (event, element) => {
+    console.log('element', element);
+    // console.log('gid', gid);
     setIsLoading(true);
     const response = await fetch("/api/generateTocPerProduct", {
       method: "POST",
@@ -46,11 +74,13 @@ const Products = () => {
 
     if (response.ok) {
       await refetchProductCount();
+      // const response2 = await fetch('/api/products/count', { method: "GET" });
+
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
           count: productsCount,
         }),
-      });
+      });splitElement
     } else {
       setIsLoading(false);
       setToastProps({
@@ -101,10 +131,6 @@ const Products = () => {
               columnContentTypes={["text", "text", "numeric"]}
               headings={["Name", "TOC", "Actions"]}
               rows={rows}
-              pagination={{
-                hasNext: true,
-                onNext: () => {},
-              }}
             />
           </LegacyCard>
         </Page>

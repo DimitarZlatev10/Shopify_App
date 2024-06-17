@@ -38,7 +38,7 @@
   "Toc": {
     "title": "Table of Contents Generator",
     "description": "Generate Table of Contents for all products!",
-    "tocHeading": "RRODUCTS WITHOUT TABLE OF CONTENTS: ",
+    "tocHeading": "PRODUCTS WITHOUT TABLE OF CONTENTS: ",
     "generateToc": "Generate Toc for all products",
     "tocGenerated": "Generated Toc for {{count}} products"
   },
