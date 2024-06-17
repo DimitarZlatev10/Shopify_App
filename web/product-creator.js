@@ -149,7 +149,7 @@ query ($numProducts: Int!, $cursor: String){
     nodes {
       title
       id
-      # descriptionHtml
+      descriptionHtml
       metafields(first: 10) {
         edges {
           node {
@@ -174,7 +174,7 @@ query ($numProducts: Int!, $cursor: String){
     nodes {
       title
       id
-      # descriptionHtml
+      descriptionHtml
       metafields(first: 10) {
         edges {
           node {
@@ -188,7 +188,7 @@ query ($numProducts: Int!, $cursor: String){
     }
     pageInfo {
       hasNextPage
-      endCursor
+      startCursor
     }
   }
 }`;
@@ -1280,6 +1280,9 @@ export async function generateTocForSingleProduct(
 ) {
   const client = new shopify.api.clients.Graphql({ session });
 
+  console.log("gid", gid);
+  console.log("productDescription", productDescription);
+
   const toc = createToc(productDescription);
   const generateProductDescription =
     createProductDescription(productDescription);
@@ -1288,7 +1291,7 @@ export async function generateTocForSingleProduct(
       data: {
         query: GENERATE_TOC_FOR_PRODUCT_MUTATION,
         variables: {
-          id: `gid://shopify/Product/${gid}`,
+          id: gid,
           descriptionHtml: `${generateProductDescription}`,
           metafieldToc: `${toc.tocHtml}`,
         },
@@ -1298,9 +1301,9 @@ export async function generateTocForSingleProduct(
     // Check for user errors in the response
     if (response.body.data.productUpdate.userErrors.length > 0) {
       throw new Error(
-        `Failed to update product ${
-          product.id
-        }: ${response.body.data.productUpdate.userErrors
+        `Failed to update product ${product.idsplitElement(
+          element
+        )}: ${response.body.data.productUpdate.userErrors
           .map((error) => error.message)
           .join(", ")}`
       );
@@ -1368,21 +1371,21 @@ export async function getAllProducts(session) {
     }
   }
 }
+
 export async function getProductsPerPage(
   session,
   currentPage,
   productsPerPage,
-  cursor,
-  pageInfo
+  cursor
+  // pageInfo
   // products
 ) {
   const client = new shopify.api.clients.Graphql({ session });
-
-  console.log("pageInfo.hasNextPage", pageInfo?.hasNextPage);
+  // console.log("pageInfo.hasNextPage", pageInfo?.hasNextPage);
+  // const info = cursor === null || pageInfo.hasNextPage ? true : false;
+  // console.log("currentPage", currentPage);
+  // console.log("info", info);
   console.log("cursor", cursor);
-
-  const info = cursor === null || pageInfo.hasNextPage ? true : false;
-  console.log("info", info);
 
   try {
     const response = await client.query({

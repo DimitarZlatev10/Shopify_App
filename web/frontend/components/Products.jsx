@@ -15,17 +15,20 @@ const Products = () => {
   const fetch = useAuthenticatedFetch();
   const { t } = useTranslation();
   const productsCount = DEFAULT_PRODUCTS_COUNT;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(null);
   const productsPerPage = 10;
+  const [isPreviousClicked, setPreviousClicked] = useState(false);
+  const [isNextClicked, setNextClicked] = useState(false);
 
   const {
     data,
-    refetch: refetchProducts,
-    isLoading: isLoadingProducts,
-    isRefetching: isRefetchingProducts,
-
+    refetch: refetchProductCount,
+    isLoading: isLoadingCount,
+    isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: `/api/products?page=${currentPage}&limit=${productsPerPage}`,
+    url: `/api/products/count`,
+    // url: `/api/products?=cursor=?=${currentPage}&limit=${productsPerPage}`,
+    // url: `/api/products?shop=dimitar-shop-app-test.myshopify.com?=cursor=?=${currentPage}&limit=${productsPerPage}`,
     reactQueryOptions: {
       onSuccess: (data) => {
         setIsLoading(false);
@@ -33,7 +36,30 @@ const Products = () => {
     },
   });
 
+  useEffect(() => {
+    if (isNextClicked || isPreviousClicked) {
+      setIsLoading(true);
+      // setCurrentPage(currentPage + 1);
+      async function fetchData() {
+        // if (data?.pageInfo?.hasNextPage) {
+          console.log('HERE', currentPage);
+          const response = await fetch(`/api/products?cursor=?=${currentPage}&limit=${productsPerPage}`, {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          // await refetchProducts();
+        // }
+        setIsLoading(false);
+      }
+      fetchData();
+    }
+  }, [isNextClicked, isPreviousClicked])
+
   const handleGenerateTOC = async (event, element) => {
+    console.log('element', element);
+    // console.log('gid', gid);
     setIsLoading(true);
     const response = await fetch("/api/generateTocPerProduct", {
       method: "POST",
@@ -48,11 +74,13 @@ const Products = () => {
 
     if (response.ok) {
       await refetchProductCount();
+      // const response2 = await fetch('/api/products/count', { method: "GET" });
+
       setToastProps({
         content: t("ProductsCard.productsCreatedToast", {
           count: productsCount,
         }),
-      });
+      });splitElement
     } else {
       setIsLoading(false);
       setToastProps({
@@ -62,62 +90,41 @@ const Products = () => {
     }
   };
 
-  const splitElement = (element) => {
-    return element.id.matches("^[0-9].*");
-  }
+  const rows =
+    data &&
+    data.length > 0 &&
+    data.map((element) => {
+      return [
+        <Link
+          removeUnderline
+          url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${element.id}`}
+          key="emerald-silk-gown"
+        >
+          {element.title}
+        </Link>,
+        element.isTocGenerated ? "Yes" : "No",
+        !element.isTocGenerated ? (
+          <Button
+            icon={PlusIcon}
+            onClick={(event) => handleGenerateTOC(event, element)}
+          >
+            Generate TOC
+          </Button>
+        ) : null,
+      ];
+    });
 
-  const rows = data?.products && data?.products.length > 0 && data?.products.map((element) => {
-    return [<Link
-        removeUnderline
-        url={`https://admin.shopify.com/store/dimitar-shop-app-test/products/${splitElement(element)}`}
-        key="emerald-silk-gown"
-      >
-        {element.title}
-      </Link>,
-      element.isTocGenerated ? 'Yes' : 'No',
-      !element.isTocGenerated ? <Button icon={PlusIcon} onClick={(event) => handleGenerateTOC(event, element)}>Generate TOC</Button> : null]
-  });
-
-  const handlePreviousPage = async () => {
-    console.log('here is the previous page');
-    setIsLoading(true);
-    
-    if (!data?.pageInfo?.hasNextPage) {
-      setCurrentPage(currentPage - 1);
-      await refetchProducts();
-      setIsLoading(false);
-    }
-  };
-
-  const handleNextPage = async () => {
-    setIsLoading(true);
-    setCurrentPage(currentPage + 1);
-    if (data?.pageInfo?.hasNextPage) {
-      // const response = await fetch(`/api/products?page=${currentPage}&limit=${productsPerPage}`, { 
-      //   method: "GET",
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     productsPerPage: 10,
-      //     cursor: data?.pageInfo?.endCursor ?? ""
-      //   },
-      // });
-      await refetchProducts();
-      setIsLoading(false);
-    }
-  };
-
-  return ( 
-    data?.products && data?.products.length > 0 ? 
-    <div className="products-wrapper">
-      <Page 
-        title="Products" 
-        fullWidth
-        pagination={{
-          hasPrevious: currentPage > 1,
-          onPrevious: () => handlePreviousPage(),
-          hasNext: data?.pageInfo?.hasNextPage,
-          onNext: () => handleNextPage()
-        }}
+  return (
+    data &&
+    data.length > 0 && (
+      <div className="products-wrapper">
+        <Page
+          title="Products"
+          fullWidth
+          pagination={{
+            hasPrevious: true,
+            hasNext: true,
+          }}
         >
           <LegacyCard>
             <DataTable
@@ -127,8 +134,9 @@ const Products = () => {
             />
           </LegacyCard>
         </Page>
-      </div> : <Loading />
-    );
-}
+      </div>
+    )
+  );
+};
 
 export default Products;
