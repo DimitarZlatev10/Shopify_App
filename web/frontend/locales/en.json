@@ -41,5 +41,41 @@
     "tocHeading": "RRODUCTS WITHOUT TABLE OF CONTENTS: ",
     "generateToc": "Generate Toc for all products",
     "tocGenerated": "Generated Toc for {{count}} products"
+  },
+  "Images": {
+    "title": "Download All Image Urls",
+    "description": "Downloading Image Urls and Alt Text into a txt file",
+    "imagesHeading": "DOWNLAOD IMAGES URLS",
+    "downloadImages": "Downalod Image Urls",
+    "importImages": "Import Image Files"
+  },
+  "Products": {
+    "title": "Write All Products",
+    "description": "Write all products info",
+    "writeProducts": "Write Products",
+    "readProducts": "Read Products"
+  },
+  "Metafields": {
+    "title": "Write All Products Metafields",
+    "description": "Write All Products Metafields",
+    "writeMetafields": "Write Metafields",
+    "readMetafields": "Read Metafields"
+  },
+
+  "Collections": {
+    "title": "Write All Collections",
+    "description": "Write All Collections",
+    "writeCollections": "Write Collections",
+    "readCollections": "Read Collections"
+  },
+  "CollectionsMetafields": {
+    "title": "Write All Collections Metafields",
+    "description": "Write All Collections Metafields",
+    "writeCollections": "Write Collections Metafields",
+    "readCollections": "Read Collections Metafields",
+    "Dropzone": {
+      "successReadMessage": "File content read successfully",
+      "successWriteMessage": "File content wrote successfully"
+    }
   }
 }

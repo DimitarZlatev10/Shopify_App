@@ -35,14 +35,14 @@ const Products = () => {
 
   const handleGenerateTOC = async (event, element) => {
     setIsLoading(true);
-    const response = await fetch("api/products", { 
-      method: "GET",
+    const response = await fetch("/api/generateTocPerProduct", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         gid: element.id,
-        descriptionHtml: element.descriptionHtml
+        descriptionHtml: element.descriptionHtml,
       }),
     });
 
@@ -60,7 +60,7 @@ const Products = () => {
         error: true,
       });
     }
-  }
+  };
 
   const splitElement = (element) => {
     return element.id.matches("^[0-9].*");
@@ -121,16 +121,8 @@ const Products = () => {
         >
           <LegacyCard>
             <DataTable
-              columnContentTypes={[
-                'text',
-                'text',
-                'numeric',
-              ]}
-              headings={[
-                'Name',
-                'TOC',
-                'Actions'
-              ]}
+              columnContentTypes={["text", "text", "numeric"]}
+              headings={["Name", "TOC", "Actions"]}
               rows={rows}
             />
           </LegacyCard>
