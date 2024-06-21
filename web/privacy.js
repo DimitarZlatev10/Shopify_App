@@ -28,7 +28,7 @@ export default {
   //   callback: async (topic, shop, body, webhookId) => {
   //     const payload = JSON.parse(body);
   //     console.log('product updated!');
-  //   await editProductToc(payload.admin_graphql_api_id,payload.body_html)
+  //     await editProductToc(payload.admin_graphql_api_id, payload.body_html)
   //   },
   // },
   PRODUCTS_UPDATE: {
@@ -75,7 +75,8 @@ export default {
     callbackUrl: "/api/webhooks",
     callback: async (topic, shop, body, webhookId) => {
       const payload = JSON.parse(body);
-      console.log("product created!");
+      await editProductToc(payload.admin_graphql_api_id, payload.body_html)
+      console.log("product created and updated!");
     },
   },
 };
