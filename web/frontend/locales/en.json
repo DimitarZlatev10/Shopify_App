@@ -53,7 +53,8 @@
     "title": "Write All Products",
     "description": "Write all products info",
     "writeProducts": "Write Products",
-    "readProducts": "Read Products"
+    "readProducts": "Read Products",
+    "nextStep": "Go To Next Step"
   },
   "Metafields": {
     "title": "Write All Products Metafields",
