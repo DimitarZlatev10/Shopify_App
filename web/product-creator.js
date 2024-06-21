@@ -4,73 +4,143 @@ import createToc from "./toc.js";
 import createProductDescription from "./product-description.js";
 import { DEFAULT_PRODUCTS_COUNT } from "./constants.js";
 import { readFromFile, writeToFile } from "../web/frontend/utils/fileWriter.js";
+import { langchain } from "./langchain-translate.js";
+
+// const ADJECTIVES = [
+//   "autumn",
+//   "hidden",
+//   "bitter",
+//   "misty",
+//   "silent",
+//   "empty",
+//   "dry",
+//   "dark",
+//   "summer",
+//   "icy",
+//   "delicate",
+//   "quiet",
+//   "white",
+//   "cool",
+//   "spring",
+//   "winter",
+//   "patient",
+//   "twilight",
+//   "dawn",
+//   "crimson",
+//   "wispy",
+//   "weathered",
+//   "blue",
+//   "billowing",
+//   "broken",
+//   "cold",
+//   "damp",
+//   "falling",
+//   "frosty",
+//   "green",
+//   "long",
+// ];
+// const NOUNS = [
+//   "waterfall",
+//   "river",
+//   "breeze",
+//   "moon",
+//   "rain",
+//   "wind",
+//   "sea",
+//   "morning",
+//   "snow",
+//   "lake",
+//   "sunset",
+//   "pine",
+//   "shadow",
+//   "leaf",
+//   "dawn",
+//   "glitter",
+//   "forest",
+//   "hill",
+//   "cloud",
+//   "meadow",
+//   "sun",
+//   "glade",
+//   "bird",
+//   "brook",
+//   "butterfly",
+//   "bush",
+//   "dew",
+//   "dust",
+//   "field",
+//   "fire",
+//   "flower",
+// ];
 
 const ADJECTIVES = [
-  "autumn",
-  "hidden",
-  "bitter",
-  "misty",
-  "silent",
-  "empty",
-  "dry",
-  "dark",
-  "summer",
-  "icy",
-  "delicate",
-  "quiet",
-  "white",
-  "cool",
-  "spring",
-  "winter",
-  "patient",
-  "twilight",
-  "dawn",
-  "crimson",
-  "wispy",
-  "weathered",
-  "blue",
-  "billowing",
-  "broken",
-  "cold",
-  "damp",
-  "falling",
-  "frosty",
-  "green",
-  "long",
+  "есенен",
+  "скрит",
+  "горчив",
+  "мъглив",
+  "мълчалив",
+  "празен",
+  "сух",
+  "тъмен",
+  "лятен",
+  "леден",
+  "нежен",
+  "тих",
+  "бял",
+  "прохладен",
+  "пролетен",
+  "зимен",
+  "търпелив",
+  "здрачен",
+  "зорен",
+  "червенкав",
+  "пухкав",
+  "обветрен",
+  "син",
+  "вълнуващ",
+  "счупен",
+  "студен",
+  "влажен",
+  "падащ",
+  "мразовит",
+  "зелен",
+  "дълъг"
 ];
+
 const NOUNS = [
-  "waterfall",
-  "river",
-  "breeze",
-  "moon",
-  "rain",
-  "wind",
-  "sea",
-  "morning",
-  "snow",
-  "lake",
-  "sunset",
-  "pine",
-  "shadow",
-  "leaf",
-  "dawn",
-  "glitter",
-  "forest",
-  "hill",
-  "cloud",
-  "meadow",
-  "sun",
-  "glade",
-  "bird",
-  "brook",
-  "butterfly",
-  "bush",
-  "dew",
-  "dust",
-  "field",
-  "fire",
-  "flower",
+  "водопад",
+  "река",
+  "вятър",
+  "луна",
+  "дъжд",
+  "вятър",
+  "море",
+  "сутрин",
+  "сняг",
+  "езеро",
+  "залез",
+  "бор",
+  "сянка",
+  "лист",
+  "зора",
+  "блясък",
+  "гора",
+  "хълм",
+  "облак",
+  "поляна",
+  "слънце",
+  "полянка",
+  "птица",
+  "поток",
+  "пеперуда",
+  "храст",
+  "роса",
+  "прах",
+  "поле",
+  "огън",
+  "цвете"
 ];
+
 const CREATE_PRODUCT_MUTATION = `
 mutation createProduct($title: String,
   $descriptionHtml : String,
@@ -104,13 +174,13 @@ mutation createProduct($title: String,
 `;
 const GET_ALL_PRODUCTS_QUERY = `
 query shopInfo {
-  products(first: 50) {
+  products(first: 250) {
     edges {
       node {
         title
         id
         descriptionHtml
-        metafields(first: 50) { 
+        metafields(first: 250) { 
           edges {
             node {
               value
@@ -120,10 +190,27 @@ query shopInfo {
             }
           }
         }
+        images(first:250){
+          edges {
+            node {
+              id
+              url
+              altText
+            }
+          }
+        }
       }
     }
   }
 }`;
+const GET_COLLECTION_BY_ID_QUERY = `query getCollectionId($id: ID!) {
+  collection(id: $id) {
+    id
+    title
+    handle
+  }
+}
+  `
 const GET_SINGLE_PRODUCT_QUERY = `
 query getSingleProduct($id : ID!) {
   product(id: $id) {
@@ -321,6 +408,7 @@ query {
   collections(first: 250) {
     edges {
       node {
+        id
         title
         handle
         sortOrder
@@ -343,6 +431,7 @@ query {
         metafields(first:250) {
           edges {
             node {
+            id
             key
             value
             namespace
@@ -1070,7 +1159,6 @@ export async function writeProducts(session) {
     });
     const images = [];
     product.node.images.edges.forEach((image) => {
-      console.log(image.node.url);
       images.push({
         originalSource: image.node.url,
         alt: image.node.altText,
@@ -1087,21 +1175,25 @@ export async function writeProducts(session) {
   });
 
   try {
-    await writeToFile(productsInfo, "/home/dimitar/Products.txt");
+    await writeToFile(productsInfo, "Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
   }
 }
 
-export async function readProducts(session) {
+export async function readProducts(session, products) {
+
+  if (!Array.isArray(products)) {
+    console.error('Products is not an array:', products);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
-  const productsInfo = await readFromFile("/home/dimitar/Products.txt");
-
-  productsInfo.forEach(async (product) => {
+  for (const product of products) {
     try {
-      await client.query({
+      const response = await client.query({
         data: {
           query: READ_PRODUCTS_MUTATION,
           variables: {
@@ -1112,10 +1204,37 @@ export async function readProducts(session) {
           },
         },
       });
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Product ${product.title} created successfully.`);
+      }
     } catch (error) {
-      console.log("error creating file", error);
+      console.error('Error creating product:', error);
     }
-  });
+  }
+
+  // const client = new shopify.api.clients.Graphql({ session });
+
+  // const productsInfo = await readFromFile("/home/dimitar/Products.txt");
+
+  // productsInfo.forEach(async (product) => {
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: READ_PRODUCTS_MUTATION,
+  //         variables: {
+  //           title: product.title,
+  //           descriptionHtml: product.descriptionHtml,
+  //           metafields: product.metafields,
+  //           media: product.images,
+  //         },
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.log("error creating file", error);
+  //   }
+  // });
 }
 
 export async function writeProductsMetafields(session) {
@@ -1143,7 +1262,7 @@ export async function writeProductsMetafields(session) {
   });
 
   try {
-    await writeToFile(productsMetafields, "/home/fabien/Metafield_Definitions-Products.txt");
+    await writeToFile(productsMetafields, "Metafield_Definitions-Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
@@ -1151,18 +1270,15 @@ export async function writeProductsMetafields(session) {
 }
 
 export async function readProductsMetafields(session, metafields) {
-  // Ensure metafields is an array before proceeding
   if (!Array.isArray(metafields)) {
     console.error('Metafields is not an array:', metafields);
-    return; // Exit function early if metafields is not an array
+    return;
   }
 
   const client = new shopify.api.clients.Graphql({ session });
 
-  // Iterate over metafields array using for...of loop
   for (const metafield of metafields) {
     try {
-      // Perform GraphQL query to create product metafield
       const response = await client.query({
         data: {
           query: CREATE_PRODUCT_METAFIELD_MUTATION,
@@ -1180,18 +1296,15 @@ export async function readProductsMetafields(session, metafields) {
       });
 
       if (response.errors) {
-        // Handle GraphQL errors
         console.error('GraphQL Error:', response.errors);
       } else {
-        console.log(`Metafield ${metafield.name} created successfully.`);
+        console.log(`Product Metafield ${metafield.name} created successfully.`);
       }
     } catch (error) {
       console.error('Error creating product metafield:', error);
     }
   }
 }
-
-
 
 export async function writeCollections(session) {
   const client = new shopify.api.clients.Graphql({ session });
@@ -1206,22 +1319,62 @@ export async function writeCollections(session) {
 
   const allCollections = [];
 
-  collections.forEach((collection) => {
+
+  for (let collection of collections) {
     const metafieldDefinitions = []
     const productsAddedToCollection = []
+
     collection.node.products.edges.forEach((product) => {
       productsAddedToCollection.push({
         title: product.node.title,
         handle: product.node.handle
       })
     })
-    collection.node.metafields.edges.forEach((metafield) => {
-      metafieldDefinitions.push({
-        key: metafield.node.key,
-        namespace: metafield.node.namespace,
-        value: metafield.node.value
-      })
-    })
+
+    for (let metafield of collection.node.metafields.edges) {
+      const collectionMetafieldLinks = []
+      if (metafield.node.key == 'links') {
+        const collectionsIds = JSON.parse(metafield.node.value)
+
+        for (let collectionId of collectionsIds) {
+          try {
+            const response = await client.query({
+              data: {
+                query: GET_COLLECTION_BY_ID_QUERY,
+                variables: {
+                  id: collectionId
+                },
+              },
+            });
+
+            collectionMetafieldLinks.push({
+              title: response.body.data.collection.title,
+              handle: response.body.data.collection.handle
+            })
+
+            if (response.errors) {
+              console.error('GraphQL Error:', response.errors);
+            } else {
+              console.log(`Collection Link Handle created successfully.`);
+            }
+          } catch (error) {
+            console.error('Error adding Link Handle', error);
+          }
+        }
+
+        metafieldDefinitions.push({
+          key: metafield.node.key,
+          namespace: metafield.node.namespace,
+          collectionLinks: collectionMetafieldLinks
+        })
+      } else {
+        metafieldDefinitions.push({
+          key: metafield.node.key,
+          namespace: metafield.node.namespace,
+          value: metafield.node.value,
+        })
+      }
+    }
     allCollections.push({
       title: collection.node.title,
       handle: collection.node.handle,
@@ -1234,19 +1387,22 @@ export async function writeCollections(session) {
       metafields: metafieldDefinitions,
       collectionProducts: productsAddedToCollection
     });
-  });
-
-  console.log(allCollections);
-
+  }
   try {
-    await writeToFile(allCollections, "/home/dimitar/Collections.txt");
+    await writeToFile(allCollections, "Collections.txt");
     console.log("Collections writing completed successfully.");
   } catch (error) {
     console.error("Failed to write collections:", error);
   }
 }
 
-export async function readCollections(session) {
+export async function readCollections(session, collections) {
+
+  if (!Array.isArray(collections)) {
+    console.error('Collections is not an array:', collections);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
   const GET_PRODUCT_BY_HANDLE = `query getProductIdFromHandle($handle: String!) {
@@ -1254,6 +1410,12 @@ export async function readCollections(session) {
       id
     }
   }`
+
+  const GET_COLLECTION_BY_HANDLE = `query getCollectionIdFromHandle($handle: String!) {
+  collectionByHandle(handle: $handle) {
+    id
+  }
+}`
 
   const ADD_PRODUCTS_TO_COLLECTION = `mutation collectionAddProducts($id: ID!, $productIds: [ID!]!) {
     collectionAddProducts(id: $id, productIds: $productIds) {
@@ -1273,8 +1435,23 @@ export async function readCollections(session) {
       }
     }
   }`
-  
-  const collections = await readFromFile("/home/dimitar/Collections.txt");
+
+  const UPDATE_COLLECTION_METAFIELD_VALUE = `mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields {
+      key
+      namespace
+      value
+      createdAt
+      updatedAt
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}`
 
   const testImage = {
     altText: 'Testtt',
@@ -1284,7 +1461,7 @@ export async function readCollections(session) {
   const productsIdsForCurrentCollection = []
   let collectionId = ''
 
-  collections.forEach(async (collection) => {
+  for (const collection of collections) {
     //1.get the products id from their handle
     for (const product of collection.collectionProducts) {
       try {
@@ -1297,13 +1474,15 @@ export async function readCollections(session) {
           },
         });
         productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
-        console.log('product id pushed successfully');
+        console.log(`product id ${response.body.data.productByHandle.id} pushed successfully`);
       } catch (error) {
         console.log("failed pushing product id", error);
       }
     }
     //2.create the collection and get its id
+    let filteredMetafields = collection.metafields.filter(metafield => metafield.key !== 'links');
     try {
+      // console.log(collection.title);
       const res = await client.query({
         data: {
           query: READ_COLLECTIONS_MUTATION,
@@ -1313,13 +1492,14 @@ export async function readCollections(session) {
               descriptionHtml: collection.descriptionHtml,
               // image : collection.image,
               image: testImage,
-              metafields: collection.metafields
+              // metafields: collection.metafields
+              metafields: filteredMetafields
             }
           },
         },
       });
       collectionId = res.body.data.collectionCreate.collection.id
-      console.log('collection created successfully');
+      console.log(`collection with id: ${res.body.data.collectionCreate.collection.id} created successfully`);
     } catch (error) {
       console.log("error creating file", error);
     }
@@ -1338,7 +1518,99 @@ export async function readCollections(session) {
     } catch (error) {
       console.log("failed to add products to collection", error);
     }
-  })
+  }
+
+  const response = await client.query({
+    data: {
+      query: WRITE_COLLECTIONS_QUERY,
+    },
+  });
+
+  const collectionsIdsAndHandles = []
+  let linksMetafieldId = ""
+
+  //1.get the metafield key LINKS's ID
+  for (const collection of response.body.data.collections.edges) {
+    if (!linksMetafieldId) {
+      collection.node.metafields.edges.some((metafield) => metafield.node.key == 'links' ? linksMetafieldId = metafield.node.id : null)
+    }
+
+    collectionsIdsAndHandles.push({
+      collectionId: collection.node.id,
+      handle: collection.node.handle,
+    })
+  }
+
+  //2.get all the collections from the txt file that have metafield
+  const collectionsWithLinks = collections.filter((collection) => collection.metafields.some((metafield) => metafield.key == 'links'))
+
+  const linksMetafieldsInfo = []
+
+  //3. get the collections ids from their handle
+  for (const collectionLink of collectionsWithLinks) {
+    let filteredCollection = collectionsIdsAndHandles.filter((collection) => collection.handle == collectionLink.handle)
+    let linksMetafield = collectionLink.metafields.filter((metafield) => metafield.key == 'links')
+    const collectionsIds = []
+
+    for (const collectionHandle of linksMetafield[0].collectionLinks) {
+      try {
+        const response = await client.query({
+          data: {
+            query: GET_COLLECTION_BY_HANDLE,
+            variables: {
+              handle: collectionHandle.handle
+            },
+          },
+        });
+
+        collectionsIds.push(response.body.data.collectionByHandle.id)
+
+        if (response.errors) {
+          console.error('GraphQL Error:', response.errors);
+        } else {
+          console.log(`Collection Link Handle added successfully.`);
+        }
+      } catch (error) {
+        console.error('Error adding Link Handle', error);
+      }
+    }
+
+    linksMetafieldsInfo.push({
+      key: linksMetafield[0].key,
+      namespace: linksMetafield[0].namespace,
+      value: JSON.stringify(collectionsIds),
+      ownerId: filteredCollection[0].collectionId
+    })
+  }
+
+  //4. set the collection metafields link value
+  for (const metafieldLink of linksMetafieldsInfo) {
+    try {
+      const response = await client.query({
+        data: {
+          query: UPDATE_COLLECTION_METAFIELD_VALUE,
+          variables: {
+            metafields : [{
+              key : metafieldLink.key,
+              namespace : metafieldLink.namespace,
+              ownerId : metafieldLink.ownerId,
+              value : metafieldLink.value,
+              type: "list.collection_reference",
+            }]
+          },
+        },
+      });
+
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Collection Link Handle added successfully.`);
+      }
+    } catch (error) {
+      console.error('Error adding Link Handle', error);
+    }
+  }
+
 }
 
 export async function writeCollectionsMetafields(session) {
@@ -1364,21 +1636,25 @@ export async function writeCollectionsMetafields(session) {
   })
 
   try {
-    await writeToFile(allCollectionsMetafields, "/home/dimitar/Metafield_Definitions-Collections.txt");
+    await writeToFile(allCollectionsMetafields, "Metafield_Definitions-Collections.txt");
     console.log("Collections writing completed successfully.");
   } catch (error) {
     console.error("Failed to write collections:", error);
   }
 }
 
-export async function readCollectionsMetafields(session) {
+export async function readCollectionsMetafields(session, metafields) {
+
+  if (!Array.isArray(metafields)) {
+    console.error('Metafields is not an array:', metafields);
+    return;
+  }
+
   const client = new shopify.api.clients.Graphql({ session });
 
-  const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
-
-  collectionsMetafields.forEach(async (metafield) => {
+  for (const metafield of metafields) {
     try {
-      await client.query({
+      const response = await client.query({
         data: {
           query: READ_COlLECTIONS_METAFIELDS_MUTATION,
           variables: {
@@ -1393,11 +1669,177 @@ export async function readCollectionsMetafields(session) {
           },
         },
       });
-      console.log('collection metafield created successfully!');
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Collection Metafield ${metafield.name} created successfully.`);
+      }
     } catch (error) {
-      console.log("error creating product metafield", error);
+      console.error('Error creating collection metafield:', error);
     }
-  });
+  }
+
+  // const client = new shopify.api.clients.Graphql({ session });
+
+  // const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
+
+  // collectionsMetafields.forEach(async (metafield) => {
+  //   try {
+  //     await client.query({
+  //       data: {
+  //         query: READ_COlLECTIONS_METAFIELDS_MUTATION,
+  //         variables: {
+  //           definition: {
+  //             name: metafield.name,
+  //             namespace: metafield.namespace,
+  //             key: metafield.key,
+  //             description: metafield.description,
+  //             type: metafield.type,
+  //             ownerType: metafield.ownerType,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     console.log('collection metafield created successfully!');
+  //   } catch (error) {
+  //     console.log("error creating product metafield", error);
+  //   }
+  // });
+}
+
+// export async function translateProducts(session, language) {
+//   const client = new shopify.api.clients.Graphql({ session });
+
+//   const response = await client.query({
+//     data: {
+//       query: WRITE_PRODUCTS_QUERY,
+//     },
+//   });
+
+//   const productsInfo = [];
+
+//   response.body.data.products.edges.forEach((product) => {
+//     const title = product.node.title;
+//     const descriptionHtml = product.node.descriptionHtml;
+//     const metafields = [];
+//     product.node.metafields.edges.forEach((metafield) => {
+//       if (metafield.node.key == 'toc') {
+//         metafields.push({
+//           key: metafield.node.key,
+//           namespace: metafield.node.namespace,
+//           value: 'no toc',
+//         });
+//       } else {
+//         metafields.push({
+//           key: metafield.node.key,
+//           namespace: metafield.node.namespace,
+//           value: metafield.node.value,
+//         });
+//       }
+//     });
+//     const images = [];
+//     product.node.images.edges.forEach((image) => {
+//       images.push({
+//         originalSource: image.node.url,
+//         alt: image.node.altText,
+//         mediaContentType: "IMAGE",
+//       });
+//     });
+
+//     productsInfo.push({
+//       title: title,
+//       descriptionHtml: descriptionHtml,
+//       metafields: metafields,
+//       images: images,
+//     });
+//   });
+
+//   try {
+//     const translatedProducts = await deeplTranslate(productsInfo, language)
+//     // const translatedProducts =  await deeplTranslate(`/home/dimitar/Products.txt`,language)
+//     await writeToFile(translatedProducts, `Products-${language}.txt`);
+//     console.log("Products writing completed successfully.");
+//   } catch (error) {
+//     console.error("Failed to write products:", error);
+//   }
+// }
+
+export async function langchainTranslate(session, language) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  try {
+    const response = await client.query({
+      data: {
+        query: GET_ALL_PRODUCTS_QUERY,
+      },
+    });
+
+    const products = response.body.data.products.edges;
+
+    // const allProducts = [];
+
+    // products.forEach((product) => {
+    //     allProducts.push({
+    //       title: product.node.title,
+    //       id: product.node.id.split("Product/")[1],
+    //       descriptionHtml: product.node.descriptionHtml,
+    //       isTocGenerated: false,
+    //     });
+    // });
+
+
+    const productsInfo = [];
+
+    products.forEach((product) => {
+      const title = product.node.title;
+      const descriptionHtml = product.node.descriptionHtml;
+      const metafields = [];
+      product.node.metafields.edges.forEach((metafield) => {
+        if (metafield.node.key == 'toc') {
+          metafields.push({
+            key: metafield.node.key,
+            namespace: metafield.node.namespace,
+            value: 'no toc',
+          });
+        } else {
+          metafields.push({
+            key: metafield.node.key,
+            namespace: metafield.node.namespace,
+            value: metafield.node.value,
+          });
+        }
+      });
+      const images = [];
+      product.node.images.edges.forEach((image) => {
+        images.push({
+          originalSource: image.node.url,
+          alt: image.node.altText,
+          mediaContentType: "IMAGE",
+        });
+      });
+
+      productsInfo.push({
+        title: title,
+        descriptionHtml: descriptionHtml,
+        metafields: metafields,
+        images: images,
+      });
+    });
+
+    const res = await langchain(productsInfo, language)
+
+    // return allProducts;
+  } catch (error) {
+    if (error instanceof GraphqlQueryError) {
+      throw new Error(
+        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
+      );
+    } else {
+      throw error;
+    }
+  }
+
+
 }
 
 function randomTitle() {
@@ -1409,3 +1851,92 @@ function randomTitle() {
 function randomPrice() {
   return Math.round((Math.random() * 10 + Number.EPSILON) * 100) / 100;
 }
+
+
+// collections.forEach((collection) => {
+//   const metafieldDefinitions = []
+//   const productsAddedToCollection = []
+//   collection.node.products.edges.forEach((product) => {
+//     productsAddedToCollection.push({
+//       title: product.node.title,
+//       handle: product.node.handle
+//     })
+//   })
+//   collection.node.metafields.edges.forEach((metafield) => {
+//     metafieldDefinitions.push({
+//       key: metafield.node.key,
+//       namespace: metafield.node.namespace,
+//       value: metafield.node.value
+//     })
+//   })
+//   allCollections.push({
+//     title: collection.node.title,
+//     handle: collection.node.handle,
+//     sortOrder: collection.node.sortOrder,
+//     descriptionHtml: collection.node.descriptionHtml,
+//     image: {
+//       altText: collection.node.image.altText,
+//       src: collection.node.image.url
+//     },
+//     metafields: metafieldDefinitions,
+//     collectionProducts: productsAddedToCollection
+//   });
+// });
+
+
+
+// collections.forEach(async (collection) => {
+//   //1.get the products id from their handle
+//   for (const product of collection.collectionProducts) {
+//     try {
+//       const response = await client.query({
+//         data: {
+//           query: GET_PRODUCT_BY_HANDLE,
+//           variables: {
+//             handle: product.handle
+//           },
+//         },
+//       });
+//       productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
+//       console.log('product id pushed successfully');
+//     } catch (error) {
+//       console.log("failed pushing product id", error);
+//     }
+//   }
+//   //2.create the collection and get its id
+//   try {
+//     const res = await client.query({
+//       data: {
+//         query: READ_COLLECTIONS_MUTATION,
+//         variables: {
+//           input: {
+//             title: collection.title,
+//             descriptionHtml: collection.descriptionHtml,
+//             // image : collection.image,
+//             image: testImage,
+//             metafields: collection.metafields
+//           }
+//         },
+//       },
+//     });
+//     collectionId = res.body.data.collectionCreate.collection.id
+//     console.log('collection created successfully');
+//   } catch (error) {
+//     console.log("error creating file", error);
+//   }
+//   //3.add the products to the collection
+//   try {
+//     await client.query({
+//       data: {
+//         query: ADD_PRODUCTS_TO_COLLECTION,
+//         variables: {
+//           id: collectionId,
+//           productIds: productsIdsForCurrentCollection
+//         },
+//       },
+//     });
+//     console.log('products added to collection successfully');
+//   } catch (error) {
+//     console.log("failed to add products to collection", error);
+//   }
+// })
