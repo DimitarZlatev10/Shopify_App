@@ -21,6 +21,7 @@ import {
   writeCollectionsMetafields,
   readCollectionsMetafields,
   readCollections,
+  langchainTranslate,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -161,7 +162,7 @@ app.post("/api/readProducts", async (_req, res) => {
   let error = null;
 
   try {
-    await readProducts(res.locals.shopify.session , JSON.parse(_req.body.content));
+    await readProducts(res.locals.shopify.session , JSON.parse(_req.body.data));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -188,8 +189,11 @@ app.post("/api/products/readMetafields", async (_req, res) => {
   let status = 200;
   let error = null;
 
+  console.log('kur');
+  console.log(_req.body.data);
+
   try {
-    await readProductsMetafields(res.locals.shopify.session, JSON.parse(_req.body.content));
+    await readProductsMetafields(res.locals.shopify.session, JSON.parse(_req.body.data));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -200,7 +204,7 @@ app.post("/api/products/readMetafields", async (_req, res) => {
     .send({ success: status === 200, result: _req.body.content, error });
 });
 
-app.post("/api/products/writeCollections", async (_req, res) => {
+app.post("/api/writeCollections", async (_req, res) => {
   let status = 200;
   let error = null;
 
@@ -219,7 +223,7 @@ app.post("/api/readCollections", async (_req, res) => {
   let error = null;
 
   try {
-    await readCollections(res.locals.shopify.session , JSON.parse(_req.body.content));
+    await readCollections(res.locals.shopify.session , JSON.parse(_req.body.data));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -247,7 +251,25 @@ app.post("/api/collections/readMetafields", async (_req, res) => {
   let error = null;
 
   try {
-    await readCollectionsMetafields(res.locals.shopify.session, JSON.parse(_req.body.content));
+    await readCollectionsMetafields(res.locals.shopify.session, JSON.parse(_req.body.data));
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/translate", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  console.log('works');
+
+  try {
+    // await translateProducts(res.locals.shopify.session, _req.body.language);
+    await langchainTranslate(res.locals.shopify.session, _req.body.language)
+    console.log('wtf');
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
