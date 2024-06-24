@@ -126,6 +126,11 @@ function ImportTabs() {
       panelID: "Collections",
     },
     {
+      id: "Publish Collections and Products to Online Store",
+      content: "Publish Collections and Products",
+      panelID: "Publish Collections and Products",
+    },
+    {
       id: "Done",
       content: "Done Importing",
       panelID: "Done Importing",
@@ -267,6 +272,27 @@ function ImportTabs() {
       setErrorMessage(
         "The file you imported in invalid! You must import - Collections.txt"
       );
+      setIsLoading(false);
+    }
+  };
+
+  const PublishCollectionsAndProducts = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/publishCollectionsAndProducts", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setSelected(5);
+        setSuccessMessage("Published Collections and Products successfully!");
+        setIsLoading(false);
+      } else {
+        console.error("Failed to publish Collections and Products:", response);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error publishing Collections and Products:", error);
       setIsLoading(false);
     }
   };
@@ -447,6 +473,18 @@ function ImportTabs() {
                   onConfirm={() => handleDropZoneDrop()}
                 />
               )}
+            </div>
+          )}
+          {selected === 4 && (
+            <div>
+              <Button
+                loading={isLoading}
+                style={{ marginTop: "15px" }}
+                size="large"
+                onClick={PublishCollectionsAndProducts}
+              >
+                Publish Collections And Products
+              </Button>
             </div>
           )}
         </LegacyCard.Section>

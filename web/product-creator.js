@@ -1590,11 +1590,11 @@ export async function readCollections(session, collections) {
         data: {
           query: UPDATE_COLLECTION_METAFIELD_VALUE,
           variables: {
-            metafields : [{
-              key : metafieldLink.key,
-              namespace : metafieldLink.namespace,
-              ownerId : metafieldLink.ownerId,
-              value : metafieldLink.value,
+            metafields: [{
+              key: metafieldLink.key,
+              namespace: metafieldLink.namespace,
+              ownerId: metafieldLink.ownerId,
+              value: metafieldLink.value,
               type: "list.collection_reference",
             }]
           },
@@ -1678,91 +1678,104 @@ export async function readCollectionsMetafields(session, metafields) {
       console.error('Error creating collection metafield:', error);
     }
   }
-
-  // const client = new shopify.api.clients.Graphql({ session });
-
-  // const collectionsMetafields = await readFromFile("/home/dimitar/Metafield_Definitions-Collections.txt");
-
-  // collectionsMetafields.forEach(async (metafield) => {
-  //   try {
-  //     await client.query({
-  //       data: {
-  //         query: READ_COlLECTIONS_METAFIELDS_MUTATION,
-  //         variables: {
-  //           definition: {
-  //             name: metafield.name,
-  //             namespace: metafield.namespace,
-  //             key: metafield.key,
-  //             description: metafield.description,
-  //             type: metafield.type,
-  //             ownerType: metafield.ownerType,
-  //           },
-  //         },
-  //       },
-  //     });
-  //     console.log('collection metafield created successfully!');
-  //   } catch (error) {
-  //     console.log("error creating product metafield", error);
-  //   }
-  // });
 }
 
-// export async function translateProducts(session, language) {
-//   const client = new shopify.api.clients.Graphql({ session });
+export async function publishCollectionsAndProducts(session) {
+  const client = new shopify.api.clients.Graphql({ session });
 
-//   const response = await client.query({
-//     data: {
-//       query: WRITE_PRODUCTS_QUERY,
-//     },
-//   });
+  const GET_ALL_COLLECTIONS_ID_QUERY = `{
+  collections(first:250){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}`
 
-//   const productsInfo = [];
+  const GET_ALL_PRODUCTS_ID_QUERY = `{
+  products(first:250){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}`
 
-//   response.body.data.products.edges.forEach((product) => {
-//     const title = product.node.title;
-//     const descriptionHtml = product.node.descriptionHtml;
-//     const metafields = [];
-//     product.node.metafields.edges.forEach((metafield) => {
-//       if (metafield.node.key == 'toc') {
-//         metafields.push({
-//           key: metafield.node.key,
-//           namespace: metafield.node.namespace,
-//           value: 'no toc',
-//         });
-//       } else {
-//         metafields.push({
-//           key: metafield.node.key,
-//           namespace: metafield.node.namespace,
-//           value: metafield.node.value,
-//         });
-//       }
-//     });
-//     const images = [];
-//     product.node.images.edges.forEach((image) => {
-//       images.push({
-//         originalSource: image.node.url,
-//         alt: image.node.altText,
-//         mediaContentType: "IMAGE",
-//       });
-//     });
+  const GET_STORE_ADD_QUERY = `{
+  publications(first:250){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}`
+  const ADD_PUBLICATIONS_MUTATION = `mutation publishablePublish($id: ID!, $input: [PublicationInput!]!) {
+  publishablePublish(id: $id, input: $input) {
+    userErrors {
+      field
+      message
+    }
+  }
+}`
 
-//     productsInfo.push({
-//       title: title,
-//       descriptionHtml: descriptionHtml,
-//       metafields: metafields,
-//       images: images,
-//     });
-//   });
+  const collectionsResponse = await client.query({
+    data: {
+      query: GET_ALL_COLLECTIONS_ID_QUERY,
+    },
+  });
 
-//   try {
-//     const translatedProducts = await deeplTranslate(productsInfo, language)
-//     // const translatedProducts =  await deeplTranslate(`/home/dimitar/Products.txt`,language)
-//     await writeToFile(translatedProducts, `Products-${language}.txt`);
-//     console.log("Products writing completed successfully.");
-//   } catch (error) {
-//     console.error("Failed to write products:", error);
-//   }
-// }
+  const productsResponse = await client.query({
+    data: {
+      query: GET_ALL_PRODUCTS_ID_QUERY,
+    },
+  });
+
+  const publicationsResponse = await client.query({
+    data: {
+      query: GET_STORE_ADD_QUERY,
+    },
+  });
+
+  const collections = collectionsResponse.body.data.collections.edges
+  const products = productsResponse.body.data.products.edges
+  const channelId = publicationsResponse.body.data.publications.edges[0].node.id
+
+  const collectionsAndProductsIds = []
+
+  for (const collection of collections) {
+    collectionsAndProductsIds.push(collection.node.id)
+  }
+
+  for (const product of products) {
+    collectionsAndProductsIds.push(product.node.id)
+  }
+
+  for (const id of collectionsAndProductsIds) {
+    try {
+      const response = await client.query({
+        data: {
+          query: ADD_PUBLICATIONS_MUTATION,
+          variables: {
+            id: id,
+            input: {
+              publicationId : channelId
+            }
+          },
+        },
+      });
+      if (response.errors) {
+        console.error('GraphQL Error:', response.errors);
+      } else {
+        console.log(`Successfully Published Product with ID: ${id}.`);
+      }
+    } catch (error) {
+      console.error('Error Publishing:', error);
+    }
+  }
+}
 
 export async function langchainTranslate(session, language) {
   const client = new shopify.api.clients.Graphql({ session });
@@ -1848,95 +1861,3 @@ function randomTitle() {
   return `${adjective} ${noun}`;
 }
 
-function randomPrice() {
-  return Math.round((Math.random() * 10 + Number.EPSILON) * 100) / 100;
-}
-
-
-// collections.forEach((collection) => {
-//   const metafieldDefinitions = []
-//   const productsAddedToCollection = []
-//   collection.node.products.edges.forEach((product) => {
-//     productsAddedToCollection.push({
-//       title: product.node.title,
-//       handle: product.node.handle
-//     })
-//   })
-//   collection.node.metafields.edges.forEach((metafield) => {
-//     metafieldDefinitions.push({
-//       key: metafield.node.key,
-//       namespace: metafield.node.namespace,
-//       value: metafield.node.value
-//     })
-//   })
-//   allCollections.push({
-//     title: collection.node.title,
-//     handle: collection.node.handle,
-//     sortOrder: collection.node.sortOrder,
-//     descriptionHtml: collection.node.descriptionHtml,
-//     image: {
-//       altText: collection.node.image.altText,
-//       src: collection.node.image.url
-//     },
-//     metafields: metafieldDefinitions,
-//     collectionProducts: productsAddedToCollection
-//   });
-// });
-
-
-
-// collections.forEach(async (collection) => {
-//   //1.get the products id from their handle
-//   for (const product of collection.collectionProducts) {
-//     try {
-//       const response = await client.query({
-//         data: {
-//           query: GET_PRODUCT_BY_HANDLE,
-//           variables: {
-//             handle: product.handle
-//           },
-//         },
-//       });
-//       productsIdsForCurrentCollection.push(response.body.data.productByHandle.id);
-//       console.log('product id pushed successfully');
-//     } catch (error) {
-//       console.log("failed pushing product id", error);
-//     }
-//   }
-//   //2.create the collection and get its id
-//   try {
-//     const res = await client.query({
-//       data: {
-//         query: READ_COLLECTIONS_MUTATION,
-//         variables: {
-//           input: {
-//             title: collection.title,
-//             descriptionHtml: collection.descriptionHtml,
-//             // image : collection.image,
-//             image: testImage,
-//             metafields: collection.metafields
-//           }
-//         },
-//       },
-//     });
-//     collectionId = res.body.data.collectionCreate.collection.id
-//     console.log('collection created successfully');
-//   } catch (error) {
-//     console.log("error creating file", error);
-//   }
-//   //3.add the products to the collection
-//   try {
-//     await client.query({
-//       data: {
-//         query: ADD_PRODUCTS_TO_COLLECTION,
-//         variables: {
-//           id: collectionId,
-//           productIds: productsIdsForCurrentCollection
-//         },
-//       },
-//     });
-//     console.log('products added to collection successfully');
-//   } catch (error) {
-//     console.log("failed to add products to collection", error);
-//   }
-// })

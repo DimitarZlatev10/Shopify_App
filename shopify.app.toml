@@ -3,7 +3,7 @@
 client_id = "1e3b566cb3c61d3d87fb470964264a16"
 name = "dimitar-shop-test-app"
 handle = "dimitar-shop-test-app"
-application_url = "https://pork-career-alone-asian.trycloudflare.com"
+application_url = "https://mesh-gbp-vertex-abraham.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_files,write_files,write_products"
+scopes = "read_files,read_publications,unauthenticated_read_content,write_files,write_online_store_navigation,write_products,write_publications"
 
 [auth]
 redirect_urls = [
-  "https://pork-career-alone-asian.trycloudflare.com/auth/callback",
-  "https://pork-career-alone-asian.trycloudflare.com/auth/shopify/callback",
-  "https://pork-career-alone-asian.trycloudflare.com/api/auth/callback"
+  "https://mesh-gbp-vertex-abraham.trycloudflare.com/auth/callback",
+  "https://mesh-gbp-vertex-abraham.trycloudflare.com/auth/shopify/callback",
+  "https://mesh-gbp-vertex-abraham.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

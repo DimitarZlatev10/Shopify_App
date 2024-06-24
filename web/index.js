@@ -22,6 +22,7 @@ import {
   readCollectionsMetafields,
   readCollections,
   langchainTranslate,
+  publishCollectionsAndProducts,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -252,6 +253,20 @@ app.post("/api/collections/readMetafields", async (_req, res) => {
 
   try {
     await readCollectionsMetafields(res.locals.shopify.session, JSON.parse(_req.body.data));
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/publishCollectionsAndProducts", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await publishCollectionsAndProducts(res.locals.shopify.session)
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
