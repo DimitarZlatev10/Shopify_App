@@ -217,7 +217,7 @@ query getSingleProduct($id : ID!) {
     id
     title
     descriptionHtml
-    metafields(first: 10) {
+    metafields(first: 100) {
       edges {
         node {
           id
@@ -271,7 +271,7 @@ const UPDATE_PRODUCT_HTML_AND_METAFIELD_MUTATION = `mutation UpdateProduct($id: 
     product {
       id
       descriptionHtml
-      metafields(first: 10) {
+      metafields(first: 100) {
         edges {
           node {
             id
@@ -325,7 +325,7 @@ mutation fileCreate($files: [FileCreateInput!]!) {
 `;
 const WRITE_PRODUCTS_QUERY = `
 query {
-  products(first:2){
+  products(first:250){
     edges{
       node{
         title
@@ -1173,8 +1173,10 @@ export async function writeProducts(session) {
       images: images,
     });
   });
-
+  
   try {
+    console.log('kur length');
+    console.log(productsInfo.length);
     await writeToFile(productsInfo, "Products.txt");
     console.log("Products writing completed successfully.");
   } catch (error) {
@@ -1458,10 +1460,10 @@ export async function readCollections(session, collections) {
     src: 'https://vitaon.bg/cdn/shop/files/prime-workout.webp?v=1702302790&amp;width=480'
   }
 
-  const productsIdsForCurrentCollection = []
   let collectionId = ''
-
+  
   for (const collection of collections) {
+    const productsIdsForCurrentCollection = []
     //1.get the products id from their handle
     for (const product of collection.collectionProducts) {
       try {
@@ -1482,7 +1484,6 @@ export async function readCollections(session, collections) {
     //2.create the collection and get its id
     let filteredMetafields = collection.metafields.filter(metafield => metafield.key !== 'links');
     try {
-      // console.log(collection.title);
       const res = await client.query({
         data: {
           query: READ_COLLECTIONS_MUTATION,
@@ -1761,7 +1762,7 @@ export async function publishCollectionsAndProducts(session) {
           variables: {
             id: id,
             input: {
-              publicationId : channelId
+              publicationId: channelId
             }
           },
         },
@@ -1854,6 +1855,167 @@ export async function langchainTranslate(session, language) {
 
 
 }
+
+export async function writeMenus(session) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
+
+  const GET_MENUS_QUERY = `
+  {
+  menus(first:10){
+    edges{
+      node{
+        title
+        handle
+        items {
+          title
+          type
+          url
+          items {
+            title
+            type
+            url
+          }
+        }
+      }
+    }
+  }
+}`
+
+  const allMenus = []
+
+  const response = await client.query({
+    data: {
+      query: GET_MENUS_QUERY,
+    },
+  });
+
+  const menus = response.body.data.menus.edges
+
+  for (const menu of menus) {
+    const items = []
+
+    for (const item of menu.node.items) {
+      items.push(item)
+    }
+
+    allMenus.push({
+      title: menu.node.title,
+      handle: menu.node.handle,
+      items: items
+    })
+  }
+
+  console.log(allMenus);
+
+  try {
+    await writeToFile(allMenus, "Menus.txt");
+    console.log("Menus writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write Menus:", error);
+  }
+}
+
+export async function readMenus(session, menus) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
+
+  const GET_COLLECTION_BY_HANDLE = `query getCollectionIdFromHandle($handle: String!) {
+    collectionByHandle(handle: $handle) {
+      id
+    }
+  }`
+
+  const CREATE_MENU_MUTATION = `
+  mutation menuCreate($handle: String!, $items: [MenuItemCreateInput!]!, $title: String!) {
+  menuCreate(handle: $handle, items: $items, title: $title) {
+    menu {
+      title
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}`
+
+  const allMenus = []
+
+  for (const menu of menus) {
+    const menuItemArray = []
+    for (const menuItem of menu.items) {
+      const subItemArray = []
+      for (const subMenu of menuItem.items) {
+        try {
+          const response = await client.query({
+            data: {
+              query: GET_COLLECTION_BY_HANDLE,
+              variables: {
+                handle: decodeURIComponent(subMenu.url).split('/')[2]
+              },
+            },
+          });
+          subItemArray.push(
+            {
+              title: subMenu.title,
+              type: subMenu.type,
+              resourceId: response.body.data.collectionByHandle.id
+            }
+          )
+          console.log(`sub collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
+        } catch (error) {
+          console.log("failed pushing product id", error);
+        }
+      }
+      if (decodeURIComponent(menuItem.url).split('/')[2]) {
+        try {
+          const response = await client.query({
+            data: {
+              query: GET_COLLECTION_BY_HANDLE,
+              variables: {
+                handle: decodeURIComponent(menuItem.url).split('/')[2]
+              },
+            },
+          });
+          menuItemArray.push({
+            items: subItemArray,
+            resourceId: response.body.data.collectionByHandle.id,
+            // tags: [],
+            title: menuItem.title,
+            type: menuItem.type
+          })
+          console.log(`father collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
+        } catch (error) {
+          console.log("failed pushing product id", error);
+        }
+      }
+    }
+    allMenus.push({
+      handle: menu.handle,
+      items: menuItemArray,
+      title: menu.title
+    })
+  }
+
+  let test = allMenus[0]
+
+  try {
+    const response = await client.query({
+      data: {
+        query: CREATE_MENU_MUTATION,
+        variables: 
+          test
+      },
+    });
+
+    if (response.errors) {
+      console.error('GraphQL Error:', response.errors);
+    } else {
+      console.log(`Menu created successfully.`);
+    }
+  } catch (error) {
+    console.error('Error creating Menu: ', error);
+  }
+}
+
 
 function randomTitle() {
   const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
