@@ -23,6 +23,8 @@ import {
   readCollections,
   langchainTranslate,
   publishCollectionsAndProducts,
+  writeMenus,
+  readMenus,
 } from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
@@ -59,7 +61,10 @@ app.post(
 
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
-app.use(express.json());
+// app.use(express.json());
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.get("/api/products/count", async (_req, res) => {
   const products = await getAllProducts(res.locals.shopify.session);
@@ -163,7 +168,7 @@ app.post("/api/readProducts", async (_req, res) => {
   let error = null;
 
   try {
-    await readProducts(res.locals.shopify.session , JSON.parse(_req.body.data));
+    await readProducts(res.locals.shopify.session, JSON.parse(_req.body.data));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -224,7 +229,7 @@ app.post("/api/readCollections", async (_req, res) => {
   let error = null;
 
   try {
-    await readCollections(res.locals.shopify.session , JSON.parse(_req.body.data));
+    await readCollections(res.locals.shopify.session, JSON.parse(_req.body.data));
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
@@ -253,6 +258,34 @@ app.post("/api/collections/readMetafields", async (_req, res) => {
 
   try {
     await readCollectionsMetafields(res.locals.shopify.session, JSON.parse(_req.body.data));
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/writeMenus", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await writeMenus(res.locals.shopify.session)
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
+
+app.post("/api/readMenus", async (_req, res) => {
+  let status = 200;
+  let error = null;
+
+  try {
+    await readMenus(res.locals.shopify.session, JSON.parse(_req.body.data))
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;

@@ -131,6 +131,11 @@ function ImportTabs() {
       panelID: "Publish Collections and Products",
     },
     {
+      id: "Import Menus",
+      content: "Menus",
+      panelID: "Menus",
+    },
+    {
       id: "Done",
       content: "Done Importing",
       panelID: "Done Importing",
@@ -276,7 +281,7 @@ function ImportTabs() {
     }
   };
 
-  const PublishCollectionsAndProducts = async () => {
+  const publishCollectionsAndProducts = async () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/publishCollectionsAndProducts", {
@@ -293,6 +298,40 @@ function ImportTabs() {
       }
     } catch (error) {
       console.error("Error publishing Collections and Products:", error);
+      setIsLoading(false);
+    }
+  };
+
+  const importMenus = async () => {
+    console.log(file.name);
+    setIsLoading(true);
+    if (file.name === "Menus.txt") {
+      try {
+        const response = await fetch("/api/readMenus", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: data }),
+        });
+
+        if (response.ok) {
+          setSelected(6);
+          resetValues();
+          setSuccessMessage("Menus imported successfully!");
+          setIsLoading(false);
+        } else {
+          console.error("Failed to import Menus:", response);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error importing Menus:", error);
+        setIsLoading(false);
+      }
+    } else {
+      setErrorMessage(
+        "The file you imported in invalid! You must import - Menus.txt"
+      );
       setIsLoading(false);
     }
   };
@@ -481,10 +520,45 @@ function ImportTabs() {
                 loading={isLoading}
                 style={{ marginTop: "15px" }}
                 size="large"
-                onClick={PublishCollectionsAndProducts}
+                onClick={publishCollectionsAndProducts}
               >
                 Publish Collections And Products
               </Button>
+            </div>
+          )}
+          {selected === 5 && (
+            <div>
+              <DropZone
+                allowMultiple={false}
+                label="Import Menus"
+                onDrop={handleConfirmationModal}
+              >
+                {uploadedFile}
+                {fileUpload}
+              </DropZone>
+              <br />
+              <Button
+                loading={isLoading}
+                style={{ marginTop: "15px" }}
+                size="large"
+                onClick={importMenus}
+              >
+                Import Menus
+              </Button>
+              {isOpen && (
+                <ConfirmationModal
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  file={file}
+                  rejectedFiles={rejectedFiles}
+                  acceptedFiles={acceptedFiles}
+                  setFile={setFile}
+                  data={data}
+                  setAcceptedFiles={setAcceptedFiles}
+                  setRejectedFiles={setRejectedFiles}
+                  onConfirm={() => handleDropZoneDrop()}
+                />
+              )}
             </div>
           )}
         </LegacyCard.Section>

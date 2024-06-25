@@ -78,6 +78,27 @@ function ExportTabs() {
     }
   };
 
+  const writeMenus = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/writeMenus", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setSelected(5);
+        setSuccessMessage("Exported Menus successfully");
+        setIsLoading(false);
+      } else {
+        console.error("Failed to export Menus:", response);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error exporting Menus:", error);
+      setIsLoading(false);
+    }
+  };
+
   const tabs = [
     {
       id: "Export Products Metafields",
@@ -98,6 +119,11 @@ function ExportTabs() {
       id: "Export Collections",
       content: "Collections",
       panelID: "Collections",
+    },
+    {
+      id: "Export Menus",
+      content: "Menus",
+      panelID: "Menus",
     },
     {
       id: "Done",
@@ -189,6 +215,18 @@ function ExportTabs() {
                 onClick={exportCollections}
               >
                 Export Collections
+              </Button>
+            </div>
+          )}
+          {selected === 4 && (
+            <div>
+              <Button
+                loading={isLoading}
+                style={{ marginTop: "15px" }}
+                size="large"
+                onClick={writeMenus}
+              >
+                Export Menus
               </Button>
             </div>
           )}
