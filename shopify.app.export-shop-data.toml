@@ -1,0 +1,28 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "b6161d20c8b68ad804a17be80ded30d0"
+name = "Export Shop Data"
+handle = "export-shop-data"
+application_url = "https://chamber-hanging-hz-shoppers.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "dimitar-shop-app-test.myshopify.com"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_files,read_publications,unauthenticated_read_content,write_files,write_online_store_navigation,write_products,write_publications"
+
+[auth]
+redirect_urls = [
+  "https://chamber-hanging-hz-shoppers.trycloudflare.com/auth/callback",
+  "https://chamber-hanging-hz-shoppers.trycloudflare.com/auth/shopify/callback",
+  "https://chamber-hanging-hz-shoppers.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-04"
+
+[pos]
+embedded = false

@@ -13,6 +13,9 @@ export default {
     callbackUrl: "/api/webhooks",
     callback: async (topic, shop, body, webhookId) => {
       const payload = JSON.parse(body);
+      let status = 200;
+      let error = null;
+      res.status(status).send({ success: status === 200, error });
     },
   },
   SHOP_REDACT: {
@@ -20,6 +23,19 @@ export default {
     callbackUrl: "/api/webhooks",
     callback: async (topic, shop, body, webhookId) => {
       const payload = JSON.parse(body);
+      let status = 200;
+      let error = null;
+      res.status(status).send({ success: status === 200, error });
+    },
+  },
+  CUSTOMERS_DATA_REQUEST: {
+    deliveryMethod: DeliveryMethod.Http,
+    callbackUrl: "/api/webhooks",
+    callback: async (topic, shop, body, webhookId) => {
+      const payload = JSON.parse(body);
+      let status = 200;
+      let error = null;
+      res.status(status).send({ success: status === 200, error });
     },
   },
   // PRODUCTS_UPDATE: {

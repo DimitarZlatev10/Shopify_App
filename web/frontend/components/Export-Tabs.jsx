@@ -16,87 +16,152 @@ function ExportTabs() {
 
   const exportProductsMetafields = async () => {
     setIsLoading(true);
-    const response = await fetch("/api/products/writeMetafields", {
+    await fetch("/api/products/writeMetafields", {
       method: "POST",
-    });
-
-    if (response.ok) {
-      setSelected(1);
-      setSuccessMessage("Products Metafields exported successfully!");
-      setIsLoading(false);
-    } else {
-      setErrorMessage("Failed to export Products Metafields!");
-      setIsLoading(false);
-    }
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Metafield_Definitions-Products.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        setSelected(1);
+        setSuccessMessage("Products Metafields exported successfully!");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Products Metafields: " + error);
+        setIsLoading(false);
+      });
   };
 
   const exportCollectionsMetafields = async () => {
     setIsLoading(true);
-
-    const response = await fetch("/api/collections/writeMetafields", {
+    await fetch("/api/collections/writeMetafields", {
       method: "POST",
-    });
-    if (response.ok) {
-      setSelected(2);
-      setSuccessMessage("Collections Metafields exported successfully!");
-      setIsLoading(false);
-    } else {
-      setErrorMessage("Failed to export Collections Metafields!");
-      setIsLoading(false);
-    }
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Metafield_Definitions-Collections.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        setSelected(2);
+        setSuccessMessage("Collections Metafields exported successfully!");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Collections Metafields: " + error);
+        setIsLoading(false);
+      });
   };
 
   const exportProducts = async () => {
     setIsLoading(true);
-
-    const response = await fetch("/api/writeProducts", {
+    await fetch("/api/writeProducts", {
       method: "POST",
-    });
-    if (response.ok) {
-      setSelected(3);
-      setSuccessMessage("Products exported successfully!");
-      setIsLoading(false);
-    } else {
-      setErrorMessage("Failed to export Products!");
-      setIsLoading(false);
-    }
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Products.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        setSelected(3);
+        setSuccessMessage("Products exported successfully!");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Products: " + error);
+        setIsLoading(false);
+      });
   };
 
   const exportCollections = async () => {
     setIsLoading(true);
-
-    const response = await fetch("/api/writeCollections", {
+    await fetch("/api/writeCollections", {
       method: "POST",
-    });
-    if (response.ok) {
-      setSelected(4);
-      setSuccessMessage("Collections exported successfully!");
-      setIsLoading(false);
-    } else {
-      setErrorMessage("Failed to export Collections!");
-      setIsLoading(false);
-    }
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Collections.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        setSelected(4);
+        setSuccessMessage("Collections exported successfully!");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Collections: " + error);
+        setIsLoading(false);
+      });
   };
 
   const writeMenus = async () => {
     setIsLoading(true);
-    try {
-      const response = await fetch("/api/writeMenus", {
-        method: "POST",
-      });
-
-      if (response.ok) {
+    await fetch("/api/writeMenus", {
+      method: "POST",
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Menus.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
         setSelected(5);
-        setSuccessMessage("Exported Menus successfully");
+        setSuccessMessage("Menus exported successfully!");
         setIsLoading(false);
-      } else {
-        console.error("Failed to export Menus:", response);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Menus: " + error);
         setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error exporting Menus:", error);
-      setIsLoading(false);
-    }
+      });
+  };
+
+  const writePages = async () => {
+    setIsLoading(true);
+    await fetch("/api/writePages", {
+      method: "POST",
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "Pages.txt";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        setSelected(6);
+        setSuccessMessage("Pages exported successfully!");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Error exporting Pages: " + error);
+        setIsLoading(false);
+      });
   };
 
   const tabs = [
@@ -124,6 +189,11 @@ function ExportTabs() {
       id: "Export Menus",
       content: "Menus",
       panelID: "Menus",
+    },
+    {
+      id: "Export Pages",
+      content: "Pages",
+      panelID: "Pages",
     },
     {
       id: "Done",
@@ -227,6 +297,18 @@ function ExportTabs() {
                 onClick={writeMenus}
               >
                 Export Menus
+              </Button>
+            </div>
+          )}
+          {selected === 5 && (
+            <div>
+              <Button
+                loading={isLoading}
+                style={{ marginTop: "15px" }}
+                size="large"
+                onClick={writePages}
+              >
+                Export Pages
               </Button>
             </div>
           )}
