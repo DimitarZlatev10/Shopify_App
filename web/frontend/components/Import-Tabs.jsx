@@ -136,6 +136,11 @@ function ImportTabs() {
       panelID: "Menus",
     },
     {
+      id: "Import Pages",
+      content: "Pages",
+      panelID: "Pages",
+    },
+    {
       id: "Done",
       content: "Done Importing",
       panelID: "Done Importing",
@@ -154,13 +159,13 @@ function ImportTabs() {
           },
           body: JSON.stringify({ data: data }),
         });
+
         if (response.ok) {
           setSelected(1);
           resetValues();
           setSuccessMessage("Products Metafields imported successfully!");
           setIsLoading(false);
         } else {
-          console.log(response);
           setIsLoading(false);
         }
       } catch (error) {
@@ -331,6 +336,40 @@ function ImportTabs() {
     } else {
       setErrorMessage(
         "The file you imported in invalid! You must import - Menus.txt"
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const importPages = async () => {
+    console.log(file.name);
+    setIsLoading(true);
+    if (file.name === "Pages.txt") {
+      try {
+        const response = await fetch("/api/readPages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: data }),
+        });
+
+        if (response.ok) {
+          setSelected(7);
+          resetValues();
+          setSuccessMessage("Pages imported successfully!");
+          setIsLoading(false);
+        } else {
+          console.error("Failed to import Pages:", response);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error importing Pages:", error);
+        setIsLoading(false);
+      }
+    } else {
+      setErrorMessage(
+        "The file you imported in invalid! You must import - Pages.txt"
       );
       setIsLoading(false);
     }
@@ -544,6 +583,41 @@ function ImportTabs() {
                 onClick={importMenus}
               >
                 Import Menus
+              </Button>
+              {isOpen && (
+                <ConfirmationModal
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  file={file}
+                  rejectedFiles={rejectedFiles}
+                  acceptedFiles={acceptedFiles}
+                  setFile={setFile}
+                  data={data}
+                  setAcceptedFiles={setAcceptedFiles}
+                  setRejectedFiles={setRejectedFiles}
+                  onConfirm={() => handleDropZoneDrop()}
+                />
+              )}
+            </div>
+          )}
+          {selected === 6 && (
+            <div>
+              <DropZone
+                allowMultiple={false}
+                label="Import Pages"
+                onDrop={handleConfirmationModal}
+              >
+                {uploadedFile}
+                {fileUpload}
+              </DropZone>
+              <br />
+              <Button
+                loading={isLoading}
+                style={{ marginTop: "15px" }}
+                size="large"
+                onClick={importPages}
+              >
+                Import Pages
               </Button>
               {isOpen && (
                 <ConfirmationModal

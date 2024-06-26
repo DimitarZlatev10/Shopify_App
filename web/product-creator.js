@@ -229,32 +229,32 @@ query getSingleProduct($id : ID!) {
     }
   }
 }`;
-const GENERATE_TOC_FOR_PRODUCT_MUTATION = `
-mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: String!) {
-  productUpdate(
-    input: {
-      id: $id,
-      descriptionHtml: $descriptionHtml,
-      metafields: [
-        {
-          key: "toc",
-          namespace: "custom",
-          value: $metafieldToc,
-        }
-      ]
-    }
-  ) {
-    product {
-      id
-      descriptionHtml
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}
-`;
+// const GENERATE_TOC_FOR_PRODUCT_MUTATION = `
+// mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: String!) {
+//   productUpdate(
+//     input: {
+//       id: $id,
+//       descriptionHtml: $descriptionHtml,
+//       metafields: [
+//         {
+//           key: "toc",
+//           namespace: "custom",
+//           value: $metafieldToc,
+//         }
+//       ]
+//     }
+//   ) {
+//     product {
+//       id
+//       descriptionHtml
+//     }
+//     userErrors {
+//       field
+//       message
+//     }
+//   }
+// }
+// `;
 const UPDATE_PRODUCT_HTML_AND_METAFIELD_MUTATION = `mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldId: ID!, $metafieldValue: String!) {
   productUpdate(
     input: {
@@ -289,40 +289,40 @@ const UPDATE_PRODUCT_HTML_AND_METAFIELD_MUTATION = `mutation UpdateProduct($id: 
   }
 }
 `;
-const GET_ALL_CONTENT_FILES_QUERY = `query {
-  files(first: 250) {
-    edges {
-      node {
-        createdAt
-        updatedAt
-        alt
-        ... on MediaImage {
-          id
-          image {
-            id
-            originalSrc: url
-            width
-            height
-            altText
-            url
-          }
-        }
-      }
-    }
-  }
-}
+// const GET_ALL_CONTENT_FILES_QUERY = `query {
+//   files(first: 250) {
+//     edges {
+//       node {
+//         createdAt
+//         updatedAt
+//         alt
+//         ... on MediaImage {
+//           id
+//           image {
+//             id
+//             originalSrc: url
+//             width
+//             height
+//             altText
+//             url
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
 
-`;
-const CREATE_FILE_MUTATION = `
-mutation fileCreate($files: [FileCreateInput!]!) {
-  fileCreate(files: $files) {
-    files {
-      alt
-      createdAt
-    }
-  }
-}
-`;
+// `;
+// const CREATE_FILE_MUTATION = `
+// mutation fileCreate($files: [FileCreateInput!]!) {
+//   fileCreate(files: $files) {
+//     files {
+//       alt
+//       createdAt
+//     }
+//   }
+// }
+// `;
 const WRITE_PRODUCTS_QUERY = `
 query {
   products(first:250){
@@ -384,6 +384,10 @@ const READ_PRODUCTS_METAFIELDS_QUERY = `
         type{
           name
         }  
+        validations {
+          name
+          value
+        }
       }
     }
   }
@@ -395,6 +399,8 @@ mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
     createdDefinition {
       id
       name
+      namespace
+      key
     }
     userErrors {
       field
@@ -519,7 +525,73 @@ mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
   }
 }
 `
+const WRITE_PAGES_QUERY = `
+{
+  pages(first:250) {
+    edges{
+      node{
+        id
+        title
+        handle
+        body
+        templateSuffix
+        visible
+        visibilityDate
+        metafields(first:20){
+          edges{
+            node{
+              description
+              key
+              namespace
+              ownerType
+              value
+              type
+            }
+          }
+        }
+      }
+    }
+  }
+}`
 
+const READ_PAGES_MUTATION = `mutation onlineStorePageCreate($page: PageCreateInput!) {
+  pageCreate(page: $page) {
+    page {
+      body
+      id
+      handle
+      title
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}`
+
+const WRITE_PAGES_METAFIELDS_QUERY = `query {
+  metafieldDefinitions(first: 250, ownerType: PAGE) {
+    edges {
+      node {
+        name
+        id
+        metafields(first:100) {
+          edges {
+            node {
+              key
+              ownerType
+              namespace
+              type
+              value
+            }
+          }
+        }
+      }
+    }
+  }
+}`
+
+//products FUNCTIONS
 export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
   const client = new shopify.api.clients.Graphql({ session });
 
@@ -833,11 +905,11 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
               namespace: "custom",
               value: "no toc",
             },
-            {
-              key: "cars",
-              namespace: "vehicle",
-              value: "carsss!",
-            },
+            // {
+            //   key: "cars",
+            //   namespace: "vehicle",
+            //   value: "carsss!",
+            // },
           ],
           media: [
             {
@@ -852,125 +924,6 @@ export async function productCreator(session, count = DEFAULT_PRODUCTS_COUNT) {
     });
 
     console.log(res.body.data.productCreate.product.metafields.edges);
-  } catch (error) {
-    if (error instanceof GraphqlQueryError) {
-      throw new Error(
-        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
-      );
-    } else {
-      throw error;
-    }
-  }
-}
-
-export async function productHtmlDescriptionFormatter(session) {
-  const client = new shopify.api.clients.Graphql({ session });
-
-  try {
-    // Fetch all products from the session
-    const products = await getAllProducts(session);
-
-    // GraphQL mutation to update the product's description and metafield
-    const UPDATE_PRODUCT_MUTATION = `
-      mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: String!) {
-        productUpdate(
-          input: {
-            id: $id,
-            descriptionHtml: $descriptionHtml,
-            metafields: [
-              {
-                key: "toc",
-                namespace: "custom",
-                value: $metafieldToc,
-              }
-            ]
-          }
-        ) {
-          product {
-            id
-            descriptionHtml
-          }
-          userErrors {
-            field
-            message
-          }
-        }
-      }
-    `;
-
-    if (products.length > 0) {
-      const productsWithoutToc = products.filter(
-        (product) => !product.isTocGenerated
-      );
-      for (const product of productsWithoutToc) {
-        const descriptionHtml = product.descriptionHtml;
-        const toc = createToc(descriptionHtml);
-        const productDescription = createProductDescription(descriptionHtml);
-
-        const response = await client.query({
-          data: {
-            query: UPDATE_PRODUCT_MUTATION,
-            variables: {
-              id: `gid://shopify/Product/${product.id}`,
-              descriptionHtml: `${productDescription}`,
-              metafieldToc: toc.tocHtml,
-            },
-          },
-        });
-
-        // Check for user errors in the response
-        if (response.body.data.productUpdate.userErrors.length > 0) {
-          throw new Error(
-            `Failed to update product ${product.id
-            }: ${response.body.data.productUpdate.userErrors
-              .map((error) => error.message)
-              .join(", ")}`
-          );
-        }
-      }
-    }
-  } catch (error) {
-    if (error instanceof GraphqlQueryError) {
-      throw new Error(
-        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
-      );
-    } else {
-      throw error;
-    }
-  }
-}
-
-export async function generateTocForSingleProduct(
-  session,
-  gid,
-  productDescription
-) {
-  const client = new shopify.api.clients.Graphql({ session });
-
-  const toc = createToc(productDescription);
-  const generateProductDescription =
-    createProductDescription(productDescription);
-  try {
-    const response = await client.query({
-      data: {
-        query: GENERATE_TOC_FOR_PRODUCT_MUTATION,
-        variables: {
-          id: `gid://shopify/Product/${gid}`,
-          descriptionHtml: `${generateProductDescription}`,
-          metafieldToc: `${toc.tocHtml}`,
-        },
-      },
-    });
-
-    // Check for user errors in the response
-    if (response.body.data.productUpdate.userErrors.length > 0) {
-      throw new Error(
-        `Failed to update product ${product.id
-        }: ${response.body.data.productUpdate.userErrors
-          .map((error) => error.message)
-          .join(", ")}`
-      );
-    }
   } catch (error) {
     if (error instanceof GraphqlQueryError) {
       throw new Error(
@@ -1083,58 +1036,6 @@ export async function editProductToc(product_gid, product_body_html) {
   }
 }
 
-export async function downloadImagesUrls(session) {
-  const client = new shopify.api.clients.Graphql({ session });
-
-  const response = await client.query({
-    data: {
-      query: GET_ALL_CONTENT_FILES_QUERY,
-    },
-  });
-
-  const imagesUrls = [];
-
-  const files = response.body.data.files.edges;
-  files.forEach((file) => {
-    if (file.node.image.url) {
-      let altText = file.node.alt;
-      let imageUrl = file.node.image.url;
-
-      imagesUrls.push({
-        alt: altText,
-        contentType: "IMAGE",
-        originalSource: imageUrl,
-      });
-    }
-  });
-
-  try {
-    await writeToFile(imagesUrls, "/home/dimitar/kur.txt");
-    console.log("File writing completed successfully.");
-  } catch (error) {
-    console.error("Failed to write file:", error);
-  }
-}
-
-export async function importImages(session) {
-  const client = new shopify.api.clients.Graphql({ session });
-
-  const imageUrls = await readFromFile("/home/dimitar/kur.txt");
-
-  try {
-    await client.query({
-      data: {
-        query: CREATE_FILE_MUTATION,
-        variables: {
-          files: imageUrls,
-        },
-      },
-    });
-  } catch (error) {
-    console.log("error creating file", error);
-  }
-}
-
 export async function writeProducts(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
@@ -1173,12 +1074,11 @@ export async function writeProducts(session) {
       images: images,
     });
   });
-  
+
   try {
-    console.log('kur length');
-    console.log(productsInfo.length);
-    await writeToFile(productsInfo, "Products.txt");
-    console.log("Products writing completed successfully.");
+    // await writeToFile(productsInfo, "Products.txt");
+    return productsInfo
+    // console.log("Products writing completed successfully.");
   } catch (error) {
     console.error("Failed to write products:", error);
   }
@@ -1215,28 +1115,6 @@ export async function readProducts(session, products) {
       console.error('Error creating product:', error);
     }
   }
-
-  // const client = new shopify.api.clients.Graphql({ session });
-
-  // const productsInfo = await readFromFile("/home/dimitar/Products.txt");
-
-  // productsInfo.forEach(async (product) => {
-  //   try {
-  //     await client.query({
-  //       data: {
-  //         query: READ_PRODUCTS_MUTATION,
-  //         variables: {
-  //           title: product.title,
-  //           descriptionHtml: product.descriptionHtml,
-  //           metafields: product.metafields,
-  //           media: product.images,
-  //         },
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.log("error creating file", error);
-  //   }
-  // });
 }
 
 export async function writeProductsMetafields(session) {
@@ -1253,6 +1131,14 @@ export async function writeProductsMetafields(session) {
   const productsMetafields = [];
 
   metafields.forEach((metafield) => {
+
+    const validations = []
+    if (metafield.node.validations) {
+      metafield.node.validations.forEach((validation) => {
+        validations.push(validation)
+      })
+    }
+
     productsMetafields.push({
       description: metafield.node.description,
       key: metafield.node.key,
@@ -1260,12 +1146,28 @@ export async function writeProductsMetafields(session) {
       name: metafield.node.name,
       type: metafield.node.type.name,
       ownerType: metafield.node.ownerType,
+      validations: validations
     });
   });
 
+  const hasTocMetafield = productsMetafields.filter((metafield) => metafield.key == "toc")
+
+  if (!hasTocMetafield || hasTocMetafield.length == 0) {
+    productsMetafields.push({
+      description: "Table of contents",
+      key: "toc",
+      namespace: "namespace",
+      name: "Table of content metafield",
+      type: "multi_line_text_field",
+      "ownerType": "PRODUCT"
+    })
+    console.log('added TOC to products metafields');
+  }
+
   try {
-    await writeToFile(productsMetafields, "Metafield_Definitions-Products.txt");
-    console.log("Products writing completed successfully.");
+    // await writeToFile(productsMetafields, "Metafield_Definitions-Products.txt");
+    return productsMetafields
+    // console.log(`${productsMetafields.length} Products Metafields exported successfully`);
   } catch (error) {
     console.error("Failed to write products:", error);
   }
@@ -1280,34 +1182,47 @@ export async function readProductsMetafields(session, metafields) {
   const client = new shopify.api.clients.Graphql({ session });
 
   for (const metafield of metafields) {
-    try {
-      const response = await client.query({
-        data: {
-          query: CREATE_PRODUCT_METAFIELD_MUTATION,
-          variables: {
-            definition: {
-              name: metafield.name,
-              namespace: metafield.namespace,
-              key: metafield.key,
-              description: metafield.description,
-              type: metafield.type,
-              ownerType: metafield.ownerType
-            }
+    // metafield CAN'T start with shopify 
+    if (metafield.namespace.startsWith("shopify--")) {
+      console.log('skipping invalid metafield!');
+    }
+    //metafield CAN'T create namespace and key reviews.rating
+    else if (metafield.key == 'rating' && metafield.namespace == 'reviews' || metafield.key == 'rating_count' && metafield.namespace == 'reviews') {
+      console.log('skipping invalid metafield!');
+    }
+    else {
+      try {
+        const response = await client.query({
+          data: {
+            query: CREATE_PRODUCT_METAFIELD_MUTATION,
+            variables: {
+              definition: {
+                name: metafield.name,
+                namespace: metafield.namespace,
+                key: metafield.key,
+                description: metafield.description,
+                type: metafield.type,
+                ownerType: metafield.ownerType,
+                validations: metafield.validations
+              }
+            },
           },
-        },
-      });
+        });
 
-      if (response.errors) {
-        console.error('GraphQL Error:', response.errors);
-      } else {
-        console.log(`Product Metafield ${metafield.name} created successfully.`);
+        if (response.body.data.metafieldDefinitionCreate.userErrors.length > 0) {
+          console.error('GraphQL Error:', response.body.data.metafieldDefinitionCreate.userErrors);
+        } else {
+          const createdMetafield = response.body.data.metafieldDefinitionCreate.createdDefinition
+          console.log(`Product Metafield with name: ${createdMetafield.name}, namespace: ${createdMetafield.namespace}, key: ${createdMetafield.key}, id: ${createdMetafield.id} created successfully!`);
+        }
+      } catch (error) {
+        console.error('Error creating product metafield:', error);
       }
-    } catch (error) {
-      console.error('Error creating product metafield:', error);
     }
   }
 }
 
+//collections FUNCTIONS
 export async function writeCollections(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
@@ -1391,8 +1306,9 @@ export async function writeCollections(session) {
     });
   }
   try {
-    await writeToFile(allCollections, "Collections.txt");
-    console.log("Collections writing completed successfully.");
+    // await writeToFile(allCollections, "Collections.txt");
+    return allCollections
+    // console.log("Collections writing completed successfully.");
   } catch (error) {
     console.error("Failed to write collections:", error);
   }
@@ -1461,7 +1377,7 @@ export async function readCollections(session, collections) {
   }
 
   let collectionId = ''
-  
+
   for (const collection of collections) {
     const productsIdsForCurrentCollection = []
     //1.get the products id from their handle
@@ -1637,8 +1553,9 @@ export async function writeCollectionsMetafields(session) {
   })
 
   try {
-    await writeToFile(allCollectionsMetafields, "Metafield_Definitions-Collections.txt");
-    console.log("Collections writing completed successfully.");
+    // await writeToFile(allCollectionsMetafields, "Metafield_Definitions-Collections.txt");
+    return allCollectionsMetafields
+    // console.log("Collections writing completed successfully.");
   } catch (error) {
     console.error("Failed to write collections:", error);
   }
@@ -1681,6 +1598,317 @@ export async function readCollectionsMetafields(session, metafields) {
   }
 }
 
+//menus FUNCTIONS
+export async function writeMenus(session) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
+
+  const GET_MENUS_QUERY = `
+  {
+  menus(first:10){
+    edges{
+      node{
+        title
+        handle
+        items {
+          title
+          type
+          url
+          items {
+            title
+            type
+            url
+          }
+        }
+      }
+    }
+  }
+}`
+
+  const allMenus = []
+
+  const response = await client.query({
+    data: {
+      query: GET_MENUS_QUERY,
+    },
+  });
+
+  const menus = response.body.data.menus.edges
+
+  for (const menu of menus) {
+    const items = []
+
+    for (const item of menu.node.items) {
+      items.push(item)
+    }
+
+    allMenus.push({
+      title: menu.node.title,
+      handle: menu.node.handle,
+      items: items
+    })
+  }
+
+  try {
+    // await writeToFile(allMenus, "Menus.txt");
+    return allMenus
+    // console.log("Menus writing completed successfully.");
+  } catch (error) {
+    console.error("Failed to write Menus:", error);
+  }
+}
+
+export async function readMenus(session, menus) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
+
+  const GET_COLLECTION_BY_HANDLE = `query getCollectionIdFromHandle($handle: String!) {
+    collectionByHandle(handle: $handle) {
+      id
+    }
+  }`
+
+  const CREATE_MENU_MUTATION = `
+  mutation menuCreate($handle: String!, $items: [MenuItemCreateInput!]!, $title: String!) {
+  menuCreate(handle: $handle, items: $items, title: $title) {
+    menu {
+      title
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}`
+
+  const allMenus = []
+
+  for (const menu of menus) {
+    const menuItemArray = []
+    for (const menuItem of menu.items) {
+      const subItemArray = []
+      for (const subMenu of menuItem.items) {
+        try {
+          const response = await client.query({
+            data: {
+              query: GET_COLLECTION_BY_HANDLE,
+              variables: {
+                handle: decodeURIComponent(subMenu.url).split('/')[2]
+              },
+            },
+          });
+          subItemArray.push(
+            {
+              title: subMenu.title,
+              type: subMenu.type,
+              resourceId: response.body.data.collectionByHandle.id
+            }
+          )
+          console.log(`sub collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
+        } catch (error) {
+          console.log("failed pushing product id", error);
+        }
+      }
+      if (decodeURIComponent(menuItem.url).split('/')[2]) {
+        try {
+          const response = await client.query({
+            data: {
+              query: GET_COLLECTION_BY_HANDLE,
+              variables: {
+                handle: decodeURIComponent(menuItem.url).split('/')[2]
+              },
+            },
+          });
+          menuItemArray.push({
+            items: subItemArray,
+            resourceId: response.body.data.collectionByHandle.id,
+            // tags: [],
+            title: menuItem.title,
+            type: menuItem.type
+          })
+          console.log(`father collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
+        } catch (error) {
+          console.log("failed pushing product id", error);
+        }
+      }
+    }
+    allMenus.push({
+      handle: menu.handle,
+      items: menuItemArray,
+      title: menu.title
+    })
+  }
+
+  let test = allMenus[0]
+
+  try {
+    const response = await client.query({
+      data: {
+        query: CREATE_MENU_MUTATION,
+        variables:
+          test
+      },
+    });
+
+    if (response.errors) {
+      console.error('GraphQL Error:', response.errors);
+    } else {
+      console.log(`Menu created successfully.`);
+    }
+  } catch (error) {
+    console.error('Error creating Menu: ', error);
+  }
+}
+
+//pages FUNCTIONS
+export async function writePages(session) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "unstable", session });
+
+  const response = await client.query({
+    data: {
+      query: WRITE_PAGES_QUERY,
+    },
+  });
+
+  const allPages = []
+
+  response.body.data.pages.edges.forEach((page) => {
+    const pageMetafields = []
+    page.node.metafields.edges.forEach((metafield) => {
+      pageMetafields.push({
+        namespace: metafield.node.namespace,
+        key: metafield.node.key,
+        value: metafield.node.value,
+        type: metafield.node.type
+      })
+    })
+
+    allPages.push({
+      body: page.node.body,
+      handle: page.node.handle,
+      metafields: pageMetafields,
+      visible: page.node.visible,
+      visibilityDate: page.node.visibilityDate,
+      templateSuffix: page.node.templateSuffix,
+      title: page.node.title
+    })
+  })
+
+  try {
+    return allPages
+  } catch (error) {
+    console.error("Failed to write Pages:", error);
+  }
+
+}
+
+export async function readPages(session,pages) {
+  const client = new shopify.api.clients.Graphql({ apiVersion: "unstable", session });
+
+  for (const page of pages) {
+    try {
+      const response = await client.query({
+        data: {
+          query: READ_PAGES_MUTATION,
+          variables: {
+            page
+          },
+        },
+      });
+
+      if(response.body.data.pageCreate.userErrors.length>0){
+        console.log("Error creating Page: " + response.body.data.pageCreate.userErrors.forEach((error)=>{
+          console.log(error);
+        }));
+      } else{
+        console.log(`Page with Title: ${response.body.data.pageCreate.page.title} and Handle: ${response.body.data.pageCreate.page.title}`);
+      }
+    } catch (error) {
+      console.log("failed pushing product id", error);
+    }
+  }
+
+}
+
+
+//translate FUNCTIONS
+export async function langchainTranslate(session, language) {
+  const client = new shopify.api.clients.Graphql({ session });
+
+  try {
+    const response = await client.query({
+      data: {
+        query: GET_ALL_PRODUCTS_QUERY,
+      },
+    });
+
+    const products = response.body.data.products.edges;
+
+    // const allProducts = [];
+
+    // products.forEach((product) => {
+    //     allProducts.push({
+    //       title: product.node.title,
+    //       id: product.node.id.split("Product/")[1],
+    //       descriptionHtml: product.node.descriptionHtml,
+    //       isTocGenerated: false,
+    //     });
+    // });
+
+
+    const productsInfo = [];
+
+    products.forEach((product) => {
+      const title = product.node.title;
+      const descriptionHtml = product.node.descriptionHtml;
+      const metafields = [];
+      product.node.metafields.edges.forEach((metafield) => {
+        if (metafield.node.key == 'toc') {
+          metafields.push({
+            key: metafield.node.key,
+            namespace: metafield.node.namespace,
+            value: 'no toc',
+          });
+        } else {
+          metafields.push({
+            key: metafield.node.key,
+            namespace: metafield.node.namespace,
+            value: metafield.node.value,
+          });
+        }
+      });
+      const images = [];
+      product.node.images.edges.forEach((image) => {
+        images.push({
+          originalSource: image.node.url,
+          alt: image.node.altText,
+          mediaContentType: "IMAGE",
+        });
+      });
+
+      productsInfo.push({
+        title: title,
+        descriptionHtml: descriptionHtml,
+        metafields: metafields,
+        images: images,
+      });
+    });
+
+    const res = await langchain(productsInfo, language)
+
+    // return allProducts;
+  } catch (error) {
+    if (error instanceof GraphqlQueryError) {
+      throw new Error(
+        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
+      );
+    } else {
+      throw error;
+    }
+  }
+
+
+}
+
+//publish FUNCTION
 export async function publishCollectionsAndProducts(session) {
   const client = new shopify.api.clients.Graphql({ session });
 
@@ -1778,248 +2006,179 @@ export async function publishCollectionsAndProducts(session) {
   }
 }
 
-export async function langchainTranslate(session, language) {
-  const client = new shopify.api.clients.Graphql({ session });
-
-  try {
-    const response = await client.query({
-      data: {
-        query: GET_ALL_PRODUCTS_QUERY,
-      },
-    });
-
-    const products = response.body.data.products.edges;
-
-    // const allProducts = [];
-
-    // products.forEach((product) => {
-    //     allProducts.push({
-    //       title: product.node.title,
-    //       id: product.node.id.split("Product/")[1],
-    //       descriptionHtml: product.node.descriptionHtml,
-    //       isTocGenerated: false,
-    //     });
-    // });
-
-
-    const productsInfo = [];
-
-    products.forEach((product) => {
-      const title = product.node.title;
-      const descriptionHtml = product.node.descriptionHtml;
-      const metafields = [];
-      product.node.metafields.edges.forEach((metafield) => {
-        if (metafield.node.key == 'toc') {
-          metafields.push({
-            key: metafield.node.key,
-            namespace: metafield.node.namespace,
-            value: 'no toc',
-          });
-        } else {
-          metafields.push({
-            key: metafield.node.key,
-            namespace: metafield.node.namespace,
-            value: metafield.node.value,
-          });
-        }
-      });
-      const images = [];
-      product.node.images.edges.forEach((image) => {
-        images.push({
-          originalSource: image.node.url,
-          alt: image.node.altText,
-          mediaContentType: "IMAGE",
-        });
-      });
-
-      productsInfo.push({
-        title: title,
-        descriptionHtml: descriptionHtml,
-        metafields: metafields,
-        images: images,
-      });
-    });
-
-    const res = await langchain(productsInfo, language)
-
-    // return allProducts;
-  } catch (error) {
-    if (error instanceof GraphqlQueryError) {
-      throw new Error(
-        `${error.message}\n${JSON.stringify(error.response, null, 2)}`
-      );
-    } else {
-      throw error;
-    }
-  }
-
-
-}
-
-export async function writeMenus(session) {
-  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
-
-  const GET_MENUS_QUERY = `
-  {
-  menus(first:10){
-    edges{
-      node{
-        title
-        handle
-        items {
-          title
-          type
-          url
-          items {
-            title
-            type
-            url
-          }
-        }
-      }
-    }
-  }
-}`
-
-  const allMenus = []
-
-  const response = await client.query({
-    data: {
-      query: GET_MENUS_QUERY,
-    },
-  });
-
-  const menus = response.body.data.menus.edges
-
-  for (const menu of menus) {
-    const items = []
-
-    for (const item of menu.node.items) {
-      items.push(item)
-    }
-
-    allMenus.push({
-      title: menu.node.title,
-      handle: menu.node.handle,
-      items: items
-    })
-  }
-
-  console.log(allMenus);
-
-  try {
-    await writeToFile(allMenus, "Menus.txt");
-    console.log("Menus writing completed successfully.");
-  } catch (error) {
-    console.error("Failed to write Menus:", error);
-  }
-}
-
-export async function readMenus(session, menus) {
-  const client = new shopify.api.clients.Graphql({ apiVersion: "2024-07", session });
-
-  const GET_COLLECTION_BY_HANDLE = `query getCollectionIdFromHandle($handle: String!) {
-    collectionByHandle(handle: $handle) {
-      id
-    }
-  }`
-
-  const CREATE_MENU_MUTATION = `
-  mutation menuCreate($handle: String!, $items: [MenuItemCreateInput!]!, $title: String!) {
-  menuCreate(handle: $handle, items: $items, title: $title) {
-    menu {
-      title
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}`
-
-  const allMenus = []
-
-  for (const menu of menus) {
-    const menuItemArray = []
-    for (const menuItem of menu.items) {
-      const subItemArray = []
-      for (const subMenu of menuItem.items) {
-        try {
-          const response = await client.query({
-            data: {
-              query: GET_COLLECTION_BY_HANDLE,
-              variables: {
-                handle: decodeURIComponent(subMenu.url).split('/')[2]
-              },
-            },
-          });
-          subItemArray.push(
-            {
-              title: subMenu.title,
-              type: subMenu.type,
-              resourceId: response.body.data.collectionByHandle.id
-            }
-          )
-          console.log(`sub collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
-        } catch (error) {
-          console.log("failed pushing product id", error);
-        }
-      }
-      if (decodeURIComponent(menuItem.url).split('/')[2]) {
-        try {
-          const response = await client.query({
-            data: {
-              query: GET_COLLECTION_BY_HANDLE,
-              variables: {
-                handle: decodeURIComponent(menuItem.url).split('/')[2]
-              },
-            },
-          });
-          menuItemArray.push({
-            items: subItemArray,
-            resourceId: response.body.data.collectionByHandle.id,
-            // tags: [],
-            title: menuItem.title,
-            type: menuItem.type
-          })
-          console.log(`father collection id ${response.body.data.collectionByHandle.id} retrieved successfully`);
-        } catch (error) {
-          console.log("failed pushing product id", error);
-        }
-      }
-    }
-    allMenus.push({
-      handle: menu.handle,
-      items: menuItemArray,
-      title: menu.title
-    })
-  }
-
-  let test = allMenus[0]
-
-  try {
-    const response = await client.query({
-      data: {
-        query: CREATE_MENU_MUTATION,
-        variables: 
-          test
-      },
-    });
-
-    if (response.errors) {
-      console.error('GraphQL Error:', response.errors);
-    } else {
-      console.log(`Menu created successfully.`);
-    }
-  } catch (error) {
-    console.error('Error creating Menu: ', error);
-  }
-}
-
-
 function randomTitle() {
   const adjective = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
   const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
   return `${adjective} ${noun}`;
 }
 
+// export async function productHtmlDescriptionFormatter(session) {
+//   const client = new shopify.api.clients.Graphql({ session });
+
+//   try {
+//     // Fetch all products from the session
+//     const products = await getAllProducts(session);
+
+//     // GraphQL mutation to update the product's description and metafield
+//     const UPDATE_PRODUCT_MUTATION = `
+//       mutation UpdateProduct($id: ID!, $descriptionHtml: String!, $metafieldToc: String!) {
+//         productUpdate(
+//           input: {
+//             id: $id,
+//             descriptionHtml: $descriptionHtml,
+//             metafields: [
+//               {
+//                 key: "toc",
+//                 namespace: "custom",
+//                 value: $metafieldToc,
+//               }
+//             ]
+//           }
+//         ) {
+//           product {
+//             id
+//             descriptionHtml
+//           }
+//           userErrors {
+//             field
+//             message
+//           }
+//         }
+//       }
+//     `;
+
+//     if (products.length > 0) {
+//       const productsWithoutToc = products.filter(
+//         (product) => !product.isTocGenerated
+//       );
+//       for (const product of productsWithoutToc) {
+//         const descriptionHtml = product.descriptionHtml;
+//         const toc = createToc(descriptionHtml);
+//         const productDescription = createProductDescription(descriptionHtml);
+
+//         const response = await client.query({
+//           data: {
+//             query: UPDATE_PRODUCT_MUTATION,
+//             variables: {
+//               id: `gid://shopify/Product/${product.id}`,
+//               descriptionHtml: `${productDescription}`,
+//               metafieldToc: toc.tocHtml,
+//             },
+//           },
+//         });
+
+//         // Check for user errors in the response
+//         if (response.body.data.productUpdate.userErrors.length > 0) {
+//           throw new Error(
+//             `Failed to update product ${product.id
+//             }: ${response.body.data.productUpdate.userErrors
+//               .map((error) => error.message)
+//               .join(", ")}`
+//           );
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     if (error instanceof GraphqlQueryError) {
+//       throw new Error(
+//         `${error.message}\n${JSON.stringify(error.response, null, 2)}`
+//       );
+//     } else {
+//       throw error;
+//     }
+//   }
+// }
+
+// export async function generateTocForSingleProduct(
+//   session,
+//   gid,
+//   productDescription
+// ) {
+//   const client = new shopify.api.clients.Graphql({ session });
+
+//   const toc = createToc(productDescription);
+//   const generateProductDescription =
+//     createProductDescription(productDescription);
+//   try {
+//     const response = await client.query({
+//       data: {
+//         query: GENERATE_TOC_FOR_PRODUCT_MUTATION,
+//         variables: {
+//           id: `gid://shopify/Product/${gid}`,
+//           descriptionHtml: `${generateProductDescription}`,
+//           metafieldToc: `${toc.tocHtml}`,
+//         },
+//       },
+//     });
+
+//     // Check for user errors in the response
+//     if (response.body.data.productUpdate.userErrors.length > 0) {
+//       throw new Error(
+//         `Failed to update product ${product.id
+//         }: ${response.body.data.productUpdate.userErrors
+//           .map((error) => error.message)
+//           .join(", ")}`
+//       );
+//     }
+//   } catch (error) {
+//     if (error instanceof GraphqlQueryError) {
+//       throw new Error(
+//         `${error.message}\n${JSON.stringify(error.response, null, 2)}`
+//       );
+//     } else {
+//       throw error;
+//     }
+//   }
+// }
+
+// export async function downloadImagesUrls(session) {
+//   const client = new shopify.api.clients.Graphql({ session });
+
+//   const response = await client.query({
+//     data: {
+//       query: GET_ALL_CONTENT_FILES_QUERY,
+//     },
+//   });
+
+//   const imagesUrls = [];
+
+//   const files = response.body.data.files.edges;
+//   files.forEach((file) => {
+//     if (file.node.image.url) {
+//       let altText = file.node.alt;
+//       let imageUrl = file.node.image.url;
+
+//       imagesUrls.push({
+//         alt: altText,
+//         contentType: "IMAGE",
+//         originalSource: imageUrl,
+//       });
+//     }
+//   });
+
+//   try {
+//     await writeToFile(imagesUrls, "/home/dimitar/kur.txt");
+//     console.log("File writing completed successfully.");
+//   } catch (error) {
+//     console.error("Failed to write file:", error);
+//   }
+// }
+
+// export async function importImages(session) {
+//   const client = new shopify.api.clients.Graphql({ session });
+
+//   const imageUrls = await readFromFile("/home/dimitar/kur.txt");
+
+//   try {
+//     await client.query({
+//       data: {
+//         query: CREATE_FILE_MUTATION,
+//         variables: {
+//           files: imageUrls,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.log("error creating file", error);
+//   }
+// }
