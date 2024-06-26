@@ -30,10 +30,10 @@ export default function App() {
                   label: "Import and Export Products",
                   destination: "/import-export-products",
                 },
-                {
-                  label: "Translate Products",
-                  destination: "/translate-products",
-                },
+                // {
+                //   label: "Translate Products",
+                //   destination: "/translate-products",
+                // },
               ]}
             />
             <Routes pages={pages} />
